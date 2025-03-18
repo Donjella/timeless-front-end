@@ -89,9 +89,6 @@ export function Header() {
                         <li><Link to="/catalog">Catalog</Link></li>
                         <li><Link to="/about">About</Link></li>
                         <li><Link to="/contact">Contact</Link></li>
-                        {isAdmin && (
-                            <li><Link to="/admin">Admin Dashboard</Link></li>
-                        )}
                     </ul>
                 </div>
             </nav>
