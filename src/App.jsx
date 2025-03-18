@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import './styles/App.css'
 import { BasePageLayout } from './pages/layouts/BasePageLayout'
+import { Register } from "./pages/Register";
 
 function App() {
   // Simple placeholder for HomePage
@@ -26,7 +27,7 @@ function App() {
           <Route path="about" element={<div>About Page (Placeholder)</div>} />
           <Route path="contact" element={<div>Contact Page (Placeholder)</div>} />
           <Route path="login" element={<div>Login Page (Placeholder)</div>} />
-          <Route path="register" element={<div>Register Page (Placeholder)</div>} />
+          <Route path="/register" element={<Register />} /> 
           
           {/* Not found */}
           <Route path="*" element={<div>404 - Page Not Found</div>} />
