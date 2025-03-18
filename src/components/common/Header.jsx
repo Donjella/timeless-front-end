@@ -11,6 +11,9 @@ export function Header() {
         setMobileMenuOpen(!mobileMenuOpen);
     };
 
+    // Check if user is an admin
+    const isAdmin = authData.isAuthenticated && authData.user && authData.user.role === 'admin';
+
     return (
         <header className="header">
             <div className="header-container">
@@ -40,6 +43,9 @@ export function Header() {
                                 <span className="welcome-message">
                                     Welcome, {authData.user.first_name}
                                 </span>
+                                {isAdmin && (
+                                    <Link to="/admin" className="admin-btn">Admin Dashboard</Link>
+                                )}
                                 <button 
                                     onClick={logout} 
                                     className="logout-btn"
@@ -57,6 +63,9 @@ export function Header() {
                         <li><Link to="/catalog" onClick={() => setMobileMenuOpen(false)}>Catalog</Link></li>
                         <li><Link to="/about" onClick={() => setMobileMenuOpen(false)}>About</Link></li>
                         <li><Link to="/contact" onClick={() => setMobileMenuOpen(false)}>Contact</Link></li>
+                        {isAdmin && (
+                            <li><Link to="/admin" onClick={() => setMobileMenuOpen(false)}>Admin Dashboard</Link></li>
+                        )}
                         {authData.isAuthenticated && (
                             <li>
                                 <button 
@@ -80,6 +89,9 @@ export function Header() {
                         <li><Link to="/catalog">Catalog</Link></li>
                         <li><Link to="/about">About</Link></li>
                         <li><Link to="/contact">Contact</Link></li>
+                        {isAdmin && (
+                            <li><Link to="/admin">Admin Dashboard</Link></li>
+                        )}
                     </ul>
                 </div>
             </nav>
