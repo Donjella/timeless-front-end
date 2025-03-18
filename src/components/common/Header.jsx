@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuthData } from "../../hooks/useAuthData";
 import "../../styles/header.css";
 
 export function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const { authData, logout } = useAuthData();
 
     const toggleMobileMenu = () => {
         setMobileMenuOpen(!mobileMenuOpen);
@@ -26,10 +28,26 @@ export function Header() {
                         <Link to="/">TIMELESS</Link>
                     </div>
                     
-                    {/* Auth buttons */}
+                    {/* Auth buttons / User info */}
                     <div className="auth-buttons">
-                        <Link to="/login" className="login-btn">Login</Link>
-                        <Link to="/register" className="register-btn">Register</Link>
+                        {!authData.isAuthenticated ? (
+                            <>
+                                <Link to="/login" className="login-btn">Login</Link>
+                                <Link to="/register" className="register-btn">Register</Link>
+                            </>
+                        ) : (
+                            <>
+                                <span className="welcome-message">
+                                    Welcome, {authData.user.first_name}
+                                </span>
+                                <button 
+                                    onClick={logout} 
+                                    className="logout-btn"
+                                >
+                                    Logout
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
                 
@@ -39,6 +57,18 @@ export function Header() {
                         <li><Link to="/catalog" onClick={() => setMobileMenuOpen(false)}>Catalog</Link></li>
                         <li><Link to="/about" onClick={() => setMobileMenuOpen(false)}>About</Link></li>
                         <li><Link to="/contact" onClick={() => setMobileMenuOpen(false)}>Contact</Link></li>
+                        {authData.isAuthenticated && (
+                            <li>
+                                <button 
+                                    onClick={() => {
+                                        logout();
+                                        setMobileMenuOpen(false);
+                                    }}
+                                >
+                                    Logout
+                                </button>
+                            </li>
+                        )}
                     </ul>
                 </div>
             </div>
