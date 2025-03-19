@@ -1,0 +1,366 @@
+/* admin-dashboard.css */
+
+/* Dashboard Layout */
+.admin-dashboard {
+    padding: 20px 0;
+    width: 100%;
+  }
+  
+  .dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .dashboard-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #333;
+  }
+  
+  .dashboard-content {
+    display: flex;
+    gap: 24px;
+  }
+  
+  /* Sidebar */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+  }
+  
+  .sidebar-menu {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+  
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    color: #555;
+    font-weight: 500;
+  }
+  
+  .sidebar-item:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .sidebar-item.active {
+    background-color: #e6f7ff;
+    color: #1890ff;
+    border-left: 3px solid #1890ff;
+  }
+  
+  /* Main Content */
+  .main-content {
+    flex: 1;
+  }
+  
+  .tab-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .content-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  /* Table Styles */
+  .data-container {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  thead {
+    background-color: #f9f9f9;
+  }
+  
+  th, td {
+    padding: 14px;
+    text-align: left;
+  }
+  
+  th {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  tbody tr {
+    border-top: 1px solid #eee;
+  }
+  
+  tbody tr:hover {
+    background-color: #f9f9f9;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  /* Error Message */
+  .error-message {
+    background-color: #fff2f0;
+    border: 1px solid #ffccc7;
+    border-radius: 4px;
+    color: #f5222d;
+    padding: 12px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .btn-close-error {
+    background: none;
+    border: none;
+    color: #f5222d;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 16px;
+    color: #1890ff;
+    font-style: italic;
+  }
+  
+  /* Empty State */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+  }
+  
+  .empty-state p {
+    margin-bottom: 16px;
+    color: #8c8c8c;
+  }
+  
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+  
+  .btn-primary {
+    background-color: #1890ff;
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background-color: #40a9ff;
+  }
+  
+  .btn-add {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .btn-small {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+  }
+  
+  .btn-success {
+    background-color: #52c41a;
+    color: white;
+  }
+  
+  .btn-success:hover {
+    background-color: #73d13d;
+  }
+  
+  .btn-success.disabled {
+    background-color: #b7eb8f;
+    cursor: not-allowed;
+  }
+  
+  .btn-danger {
+    background-color: #f5222d;
+    color: white;
+  }
+  
+  .btn-danger:hover {
+    background-color: #ff4d4f;
+  }
+  
+  .btn-secondary {
+    background-color: #f0f0f0;
+    color: #333;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+  }
+  
+  .btn-edit {
+    color: #1890ff;
+  }
+  
+  .btn-edit:hover {
+    background-color: #e6f7ff;
+  }
+  
+  .btn-delete {
+    color: #f5222d;
+  }
+  
+  .btn-delete:hover {
+    background-color: #fff1f0;
+  }
+  
+  /* Disabled buttons */
+  .btn[disabled], .btn-icon[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  /* Status Badges */
+  .status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+  
+  .status-pending {
+    background-color: #fffbe6;
+    color: #faad14;
+  }
+  
+  .status-success {
+    background-color: #f6ffed;
+    color: #52c41a;
+  }
+  
+  /* Search Input */
+  .search-container {
+    position: relative;
+  }
+  
+  .search-input {
+    padding: 8px 8px 8px 36px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    min-width: 240px;
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #bfbfbf;
+  }
+  
+  /* Filter Select */
+  .filter-select {
+    padding: 8px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background-color: white;
+  }
+  
+  /* Icon */
+  .icon {
+    margin-right: 4px;
+    font-size: 16px;
+  }
+  
+  /* Confirmation Modal */
+  .confirmation-modal {
+    max-width: 400px;
+  }
+  
+  .modal-content {
+    padding: 16px 24px;
+    line-height: 1.5;
+  }
+  
+  .modal-footer {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid #eee;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .dashboard-content {
+      flex-direction: column;
+    }
+    
+    .sidebar {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+    
+    .content-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    
+    .search-container, .filters {
+      width: 100%;
+    }
+    
+    .search-input, .filter-select {
+      width: 100%;
+    }
+  }

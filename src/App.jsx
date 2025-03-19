@@ -4,12 +4,13 @@ import {
   Route,
   Navigate,
 } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import './styles/App.css';
 import { BasePageLayout } from './pages/layouts/BasePageLayout';
 import { Register } from './pages/Register';
 import { Login } from './pages/Login';
-// import AdminDashboard from "./components/AdminDashboard";
 import { useAuthData } from './hooks/useAuthData';
+import AdminDashboard from './components/AdminDashboard'; 
 
 function App() {
   const { authData } = useAuthData();
@@ -29,6 +30,11 @@ function App() {
     }
 
     return children;
+  };
+
+  // PropTypes validation for AdminRoute
+  AdminRoute.propTypes = {
+    children: PropTypes.node.isRequired,
   };
 
   // Simple placeholder for HomePage
@@ -52,24 +58,21 @@ function App() {
         <Route path="/" element={<BasePageLayout />}>
           {/* Public routes */}
           <Route index element={<HomePage />} />
-          <Route
-            path="catalog"
-            element={<div>Catalog Page (Placeholder)</div>}
-          />
+          <Route path="catalog" element={<div>Catalog Page (Placeholder)</div>} />
           <Route path="about" element={<div>About Page (Placeholder)</div>} />
-          <Route
-            path="contact"
-            element={<div>Contact Page (Placeholder)</div>}
-          />
+          <Route path="contact" element={<div>Contact Page (Placeholder)</div>} />
           <Route path="login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="register" element={<Register />} />
 
-          {/* Admin routes
-          <Route path="/admin" element={
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          } /> */}
+          {/* Admin routes - now within BasePageLayout */}
+          <Route
+            path="admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
 
           {/* Not found */}
           <Route path="*" element={<div>404 - Page Not Found</div>} />
