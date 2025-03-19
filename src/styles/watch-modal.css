@@ -1,5 +1,4 @@
-/* watch-modal.css */
-
+/* Base modal styles */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -14,52 +13,52 @@
   }
   
   .modal-container {
-    background-color: white;
+    background-color: #fff;
     border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     width: 100%;
     max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
+    overflow: hidden;
   }
   
   .modal-header {
-    padding: 16px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #eee;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e0e0e0;
   }
   
   .modal-header h2 {
-    font-size: 1.2rem;
-    font-weight: 600;
     margin: 0;
+    font-size: 1.4rem;
+    color: #333;
   }
   
   .btn-close {
     background: none;
     border: none;
+    font-size: 1.5rem;
     cursor: pointer;
-    color: #999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
+    padding: 0;
+    color: #666;
   }
   
   .btn-close:hover {
     color: #333;
   }
   
+  .modal-form {
+    padding: 24px;
+  }
+  
   .modal-error {
-    margin: 0;
-    padding: 12px 24px;
-    background-color: #fff2f0;
-    border-bottom: 1px solid #ffccc7;
-    color: #f5222d;
+    margin: 16px 24px 0;
+    padding: 12px 16px;
+    background-color: #ffebee;
+    color: #d32f2f;
+    border-radius: 4px;
+    border-left: 4px solid #d32f2f;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -68,30 +67,37 @@
   .btn-close-error {
     background: none;
     border: none;
-    color: #f5222d;
+    color: #d32f2f;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .loading-indicator {
-    padding: 8px 0;
-    color: #1890ff;
-    font-style: italic;
-  }
-  
-  .modal-form {
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    font-size: 1.2rem;
+    padding: 0;
   }
   
   .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+  }
+  
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
   }
   
   .form-row {
@@ -103,76 +109,139 @@
     flex: 1;
   }
   
-  .form-group label {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #555;
-  }
-  
-  .form-group input,
-  .form-group textarea,
-  .form-group select {
-    padding: 10px 12px;
-    border: 1px solid #d9d9d9;
-    border-radius: 4px;
-    font-family: inherit;
-    font-size: 0.95rem;
-    transition: border-color 0.2s;
-  }
-  
-  .form-group input:focus,
-  .form-group textarea:focus,
-  .form-group select:focus {
-    outline: none;
-    border-color: #1890ff;
-    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
-  }
-  
   .form-actions {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
-    margin-top: 16px;
+    margin-top: 24px;
   }
   
   .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 16px;
-    border: none;
+    padding: 10px 16px;
     border-radius: 4px;
-    cursor: pointer;
     font-weight: 500;
-    transition: background-color 0.2s;
+    cursor: pointer;
+    border: none;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8rem;
   }
   
   .btn-primary {
-    background-color: #1890ff;
+    background-color: #4a90e2;
     color: white;
   }
   
   .btn-primary:hover {
-    background-color: #40a9ff;
+    background-color: #3a7bc8;
+  }
+  
+  .btn-primary:disabled {
+    background-color: #a5c7f0;
+    cursor: not-allowed;
   }
   
   .btn-secondary {
-    background-color: #f0f0f0;
+    background-color: #e0e0e0;
     color: #333;
   }
   
   .btn-secondary:hover {
-    background-color: #e0e0e0;
+    background-color: #d0d0d0;
   }
   
-  /* Responsive adjustments */
-  @media (max-width: 640px) {
-    .modal-container {
-      width: 95%;
-    }
-    
-    .form-row {
-      flex-direction: column;
-      gap: 16px;
-    }
+  .loading-indicator {
+    padding: 10px;
+    color: #666;
+    font-style: italic;
+  }
+  
+  /* New styles for brand selection/creation */
+  .select-with-button {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .select-with-button select {
+    flex: 1;
+  }
+  
+  .btn-icon {
+    padding: 8px;
+    min-width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .btn-icon:hover {
+    background-color: #3a7bc8;
+  }
+  
+  .btn-icon:disabled {
+    background-color: #a5c7f0;
+    cursor: not-allowed;
+  }
+  
+  .icon {
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+  
+  .new-brand-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .brand-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  
+  input.error {
+    border-color: #d32f2f;
+  }
+  
+  .error-text {
+    color: #d32f2f;
+    font-size: 0.8rem;
+    margin-top: 4px;
+  }
+  
+  /* Confirmation modal */
+  .confirmation-modal {
+    max-width: 400px;
+  }
+  
+  .confirmation-modal .modal-content {
+    padding: 24px;
+  }
+  
+  .confirmation-modal .modal-footer {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid #e0e0e0;
+  }
+  
+  .btn-danger {
+    background-color: #e53935;
+    color: white;
+  }
+  
+  .btn-danger:hover {
+    background-color: #c62828;
   }

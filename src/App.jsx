@@ -10,7 +10,7 @@ import { BasePageLayout } from './pages/layouts/BasePageLayout';
 import { Register } from './pages/Register';
 import { Login } from './pages/Login';
 import { useAuthData } from './hooks/useAuthData';
-import AdminDashboard from './components/AdminDashboard'; 
+import AdminDashboard from './components/AdminDashboard';
 
 function App() {
   const { authData } = useAuthData();
@@ -58,9 +58,15 @@ function App() {
         <Route path="/" element={<BasePageLayout />}>
           {/* Public routes */}
           <Route index element={<HomePage />} />
-          <Route path="catalog" element={<div>Catalog Page (Placeholder)</div>} />
+          <Route
+            path="catalog"
+            element={<div>Catalog Page (Placeholder)</div>}
+          />
           <Route path="about" element={<div>About Page (Placeholder)</div>} />
-          <Route path="contact" element={<div>Contact Page (Placeholder)</div>} />
+          <Route
+            path="contact"
+            element={<div>Contact Page (Placeholder)</div>}
+          />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
 

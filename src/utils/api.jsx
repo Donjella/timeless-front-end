@@ -114,5 +114,114 @@ export const api = {
       }),
   },
 
-  // Add other API endpoints as needed (watches, rentals, etc.)
+  // Watch endpoints
+  watches: {
+    getAll: () =>
+      fetchWrapper('/api/watches', {
+        method: 'GET',
+        headers: createHeaders(false), // Public endpoint
+      }),
+
+    getById: (id) =>
+      fetchWrapper(`/api/watches/${id}`, {
+        method: 'GET',
+        headers: createHeaders(false), // Public endpoint
+      }),
+
+    create: (watchData) =>
+      fetchWrapper('/api/watches', {
+        method: 'POST',
+        headers: createHeaders(), // Admin only
+        body: JSON.stringify(watchData),
+      }),
+
+    update: (id, watchData) =>
+      fetchWrapper(`/api/watches/${id}`, {
+        method: 'PUT',
+        headers: createHeaders(), // Admin only
+        body: JSON.stringify(watchData),
+      }),
+
+    delete: (id) =>
+      fetchWrapper(`/api/watches/${id}`, {
+        method: 'DELETE',
+        headers: createHeaders(), // Admin only
+      }),
+  },
+
+  // Brand endpoints
+  brands: {
+    getAll: () =>
+      fetchWrapper('/api/brands', {
+        method: 'GET',
+        headers: createHeaders(false), // Public endpoint
+      }),
+
+    getById: (id) =>
+      fetchWrapper(`/api/brands/${id}`, {
+        method: 'GET',
+        headers: createHeaders(false), // Public endpoint
+      }),
+
+    create: (brandData) =>
+      fetchWrapper('/api/brands', {
+        method: 'POST',
+        headers: createHeaders(), // Admin only
+        body: JSON.stringify(brandData),
+      }),
+
+    update: (id, brandData) =>
+      fetchWrapper(`/api/brands/${id}`, {
+        method: 'PUT',
+        headers: createHeaders(), // Admin only
+        body: JSON.stringify(brandData),
+      }),
+
+    delete: (id) =>
+      fetchWrapper(`/api/brands/${id}`, {
+        method: 'DELETE',
+        headers: createHeaders(), // Admin only
+      }),
+  },
+
+  // Rental endpoints
+  rentals: {
+    getAll: () =>
+      fetchWrapper('/api/rentals', {
+        method: 'GET',
+        headers: createHeaders(), // Admin only
+      }),
+
+    getMyRentals: () =>
+      fetchWrapper('/api/rentals/my-rentals', {
+        method: 'GET',
+        headers: createHeaders(),
+      }),
+
+    getById: (id) =>
+      fetchWrapper(`/api/rentals/${id}`, {
+        method: 'GET',
+        headers: createHeaders(),
+      }),
+
+    create: (rentalData) =>
+      fetchWrapper('/api/rentals', {
+        method: 'POST',
+        headers: createHeaders(),
+        body: JSON.stringify(rentalData),
+      }),
+
+    updateStatus: (id, status) =>
+      fetchWrapper(`/api/rentals/${id}/status`, {
+        method: 'PATCH',
+        headers: createHeaders(), // Admin only
+        body: JSON.stringify({ rental_status: status }),
+      }),
+
+    cancelRental: (id) =>
+      fetchWrapper(`/api/rentals/${id}/cancel`, {
+        method: 'PATCH',
+        headers: createHeaders(),
+      }),
+  },
 };
