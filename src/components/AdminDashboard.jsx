@@ -2,15 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../styles/admin-dashboard.css';
 import WatchModal from './WatchModal';
 import { api } from '../utils/api';
-
-// Simple icon components instead of using lucide-react
-const Icons = {
-  Plus: () => <span className="icon">+</span>,
-  Edit: () => <span className="icon">✎</span>,
-  Trash: () => <span className="icon">🗑</span>,
-  Close: () => <span className="icon">×</span>,
-  Search: () => <span className="icon">🔍</span>,
-};
+import { Plus, Edit, Trash2, X, Search } from 'lucide-react';
 
 const AdminDashboard = () => {
   // State
@@ -211,7 +203,7 @@ const AdminDashboard = () => {
                 }}
                 disabled={isLoading}
               >
-                <Icons.Plus /> Add Watch
+                <Plus size={18} /> Add Watch
               </button>
             </div>
 
@@ -222,7 +214,7 @@ const AdminDashboard = () => {
                   className="btn-close-error"
                   onClick={() => setError(null)}
                 >
-                  <Icons.Close />
+                  <X size={18} />
                 </button>
               </div>
             )}
@@ -268,14 +260,14 @@ const AdminDashboard = () => {
                             onClick={() => handleEditWatch(watch)}
                             disabled={isLoading}
                           >
-                            <Icons.Edit />
+                            <Edit size={18} />
                           </button>
                           <button
                             className="btn-icon btn-delete"
                             onClick={() => handleDeleteClick(watch)}
                             disabled={isLoading}
                           >
-                            <Icons.Trash />
+                            <Trash2 size={18} />
                           </button>
                         </td>
                       </tr>
@@ -361,7 +353,7 @@ const AdminDashboard = () => {
             <div className="content-header">
               <h2>User Management</h2>
               <div className="search-container">
-                <Icons.Search className="search-icon" />
+                <Search className="search-icon" size={18} />
                 <input
                   type="text"
                   placeholder="Search users..."
@@ -388,7 +380,7 @@ const AdminDashboard = () => {
                     <td>123 Main St, Sydney</td>
                     <td className="actions">
                       <button className="btn-icon btn-edit">
-                        <Icons.Edit />
+                        <Edit size={18} />
                       </button>
                     </td>
                   </tr>
@@ -399,7 +391,7 @@ const AdminDashboard = () => {
                     <td>456 Park Ave, Melbourne</td>
                     <td className="actions">
                       <button className="btn-icon btn-edit">
-                        <Icons.Edit />
+                        <Edit size={18} />
                       </button>
                     </td>
                   </tr>
@@ -468,7 +460,7 @@ const AdminDashboard = () => {
             <div className="modal-header">
               <h2>Confirm Delete</h2>
               <button className="btn-close" onClick={handleCancelDelete}>
-                <Icons.Close />
+                <X size={18} />
               </button>
             </div>
             <div className="modal-content">
