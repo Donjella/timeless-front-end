@@ -1,26 +1,26 @@
 // src/pages/Login.jsx
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuthData } from "../hooks/useAuthData";
-import { api } from "../utils/api";
-import "../styles/login.css";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthData } from '../hooks/useAuthData';
+import { api } from '../utils/api';
+import '../styles/login.css';
 
 export function Login() {
   const navigate = useNavigate();
   const { login } = useAuthData();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: value,
     });
   };
 
@@ -39,22 +39,24 @@ export function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     if (validateForm()) {
       setIsSubmitting(true);
-      
+
       try {
         // Use our API utility to login
         const userData = await api.auth.login(formData);
-        
+
         // Login the user with our auth context
         login(userData);
-        
+
         // Redirect to home page after successful login
         navigate('/');
       } catch (error) {
         console.error('Login error:', error);
-        setError(error.message || 'Login failed. Please check your credentials.');
+        setError(
+          error.message || 'Login failed. Please check your credentials.'
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -65,13 +67,9 @@ export function Login() {
     <div className="container">
       <div className="login-page">
         <h1 className="page-title">Login to Your Account</h1>
-        
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
-        
+
+        {error && <div className="error-message">{error}</div>}
+
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -84,7 +82,7 @@ export function Login() {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
@@ -96,7 +94,7 @@ export function Login() {
               required
             />
           </div>
-          
+
           <div className="form-actions">
             <button
               type="submit"
@@ -106,7 +104,7 @@ export function Login() {
               {isSubmitting ? 'Logging In...' : 'Login'}
             </button>
           </div>
-          
+
           <div className="register-link">
             Don't have an account? <a href="/register">Register here</a>
           </div>

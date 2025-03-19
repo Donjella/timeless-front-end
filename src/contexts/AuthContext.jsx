@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 const defaultAuthData = {
   isAuthenticated: false,
   user: null,
-  token: null
+  token: null,
 };
 
 // Create context
@@ -14,13 +14,13 @@ export const AuthContext = createContext({
   setAuthData: () => {},
   login: () => {},
   logout: () => {},
-  isAdmin: () => false
+  isAdmin: () => false,
 });
 
 // Provider component
 export function AuthProvider({ children }) {
   const [authData, setAuthData] = useState(defaultAuthData);
-  
+
   // Load auth data from localStorage on initial load
   useEffect(() => {
     const storedAuth = localStorage.getItem('auth');
@@ -54,11 +54,11 @@ export function AuthProvider({ children }) {
         last_name: userData.last_name,
         email: userData.email,
         phone_number: userData.phone_number,
-        role: userData.role
+        role: userData.role,
       },
-      token: userData.token
+      token: userData.token,
     };
-    
+
     setAuthData(authPayload);
     return true;
   };
@@ -74,13 +74,15 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      authData, 
-      setAuthData, 
-      login, 
-      logout, 
-      isAdmin 
-    }}>
+    <AuthContext.Provider
+      value={{
+        authData,
+        setAuthData,
+        login,
+        logout,
+        isAdmin,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

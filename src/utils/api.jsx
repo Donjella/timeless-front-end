@@ -12,7 +12,7 @@ const getToken = () => {
 // Helper function to create headers with auth token
 const createHeaders = (includeAuth = true) => {
   const headers = {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   };
 
   if (includeAuth) {
@@ -28,18 +28,18 @@ const createHeaders = (includeAuth = true) => {
 // Generic fetch wrapper with error handling
 const fetchWrapper = async (endpoint, options) => {
   const url = `${API_BASE_URL}${endpoint}`;
-  
+
   try {
     const response = await fetch(url, options);
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw {
         status: response.status,
-        message: data.message || 'Something went wrong'
+        message: data.message || 'Something went wrong',
       };
     }
-    
+
     return data;
   } catch (error) {
     // Check if it's a custom error or a network error
@@ -48,7 +48,7 @@ const fetchWrapper = async (endpoint, options) => {
     } else {
       throw {
         status: 0,
-        message: 'Network error. Please check your connection.'
+        message: 'Network error. Please check your connection.',
       };
     }
   }
@@ -58,53 +58,61 @@ const fetchWrapper = async (endpoint, options) => {
 export const api = {
   // Auth endpoints
   auth: {
-    register: (userData) => fetchWrapper('/api/users/register', {
-      method: 'POST',
-      headers: createHeaders(false),
-      body: JSON.stringify(userData)
-    }),
-    
-    login: (credentials) => fetchWrapper('/api/users/login', {
-      method: 'POST',
-      headers: createHeaders(false),
-      body: JSON.stringify(credentials)
-    }),
-    
-    getProfile: () => fetchWrapper('/api/users/profile', {
-      method: 'GET',
-      headers: createHeaders()
-    }),
-    
-    updateProfile: (userData) => fetchWrapper('/api/users/profile', {
-      method: 'PATCH',
-      headers: createHeaders(),
-      body: JSON.stringify(userData)
-    })
+    register: (userData) =>
+      fetchWrapper('/api/users/register', {
+        method: 'POST',
+        headers: createHeaders(false),
+        body: JSON.stringify(userData),
+      }),
+
+    login: (credentials) =>
+      fetchWrapper('/api/users/login', {
+        method: 'POST',
+        headers: createHeaders(false),
+        body: JSON.stringify(credentials),
+      }),
+
+    getProfile: () =>
+      fetchWrapper('/api/users/profile', {
+        method: 'GET',
+        headers: createHeaders(),
+      }),
+
+    updateProfile: (userData) =>
+      fetchWrapper('/api/users/profile', {
+        method: 'PATCH',
+        headers: createHeaders(),
+        body: JSON.stringify(userData),
+      }),
   },
-  
+
   // User management (admin)
   users: {
-    getAll: () => fetchWrapper('/api/users', {
-      method: 'GET',
-      headers: createHeaders()
-    }),
-    
-    getById: (id) => fetchWrapper(`/api/users/${id}`, {
-      method: 'GET',
-      headers: createHeaders()
-    }),
-    
-    updateRole: (id, role) => fetchWrapper(`/api/users/role/${id}`, {
-      method: 'PATCH',
-      headers: createHeaders(),
-      body: JSON.stringify({ role })
-    }),
-    
-    delete: (id) => fetchWrapper(`/api/users/${id}`, {
-      method: 'DELETE',
-      headers: createHeaders()
-    })
-  }
-  
+    getAll: () =>
+      fetchWrapper('/api/users', {
+        method: 'GET',
+        headers: createHeaders(),
+      }),
+
+    getById: (id) =>
+      fetchWrapper(`/api/users/${id}`, {
+        method: 'GET',
+        headers: createHeaders(),
+      }),
+
+    updateRole: (id, role) =>
+      fetchWrapper(`/api/users/role/${id}`, {
+        method: 'PATCH',
+        headers: createHeaders(),
+        body: JSON.stringify({ role }),
+      }),
+
+    delete: (id) =>
+      fetchWrapper(`/api/users/${id}`, {
+        method: 'DELETE',
+        headers: createHeaders(),
+      }),
+  },
+
   // Add other API endpoints as needed (watches, rentals, etc.)
 };

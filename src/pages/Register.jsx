@@ -1,16 +1,16 @@
 // src/pages/Register.jsx
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuthData } from "../hooks/useAuthData";
-import { api } from "../utils/api";
-import "../styles/register.css";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthData } from '../hooks/useAuthData';
+import { api } from '../utils/api';
+import '../styles/register.css';
 
 export function Register() {
   const navigate = useNavigate();
   const { login } = useAuthData();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -21,7 +21,7 @@ export function Register() {
     street_address: '',
     suburb: '',
     state: '',
-    postcode: ''
+    postcode: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -30,40 +30,45 @@ export function Register() {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: value,
     });
-    
+
     // Clear field-specific error when user types
     if (errors[name]) {
       setErrors({
         ...errors,
-        [name]: ''
+        [name]: '',
       });
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Required fields from your API
-    if (!formData.first_name.trim()) newErrors.first_name = 'First name is required';
-    if (!formData.last_name.trim()) newErrors.last_name = 'Last name is required';
+    if (!formData.first_name.trim())
+      newErrors.first_name = 'First name is required';
+    if (!formData.last_name.trim())
+      newErrors.last_name = 'Last name is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
-    
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      newErrors.email = 'Email is invalid';
+
     if (!formData.password.trim()) newErrors.password = 'Password is required';
-    else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
-    
+    else if (formData.password.length < 8)
+      newErrors.password = 'Password must be at least 8 characters';
+
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
     // Address validation (required per your backend)
-    if (!formData.street_address.trim()) newErrors.street_address = 'Street address is required';
+    if (!formData.street_address.trim())
+      newErrors.street_address = 'Street address is required';
     if (!formData.suburb.trim()) newErrors.suburb = 'Suburb is required';
     if (!formData.state.trim()) newErrors.state = 'State is required';
     if (!formData.postcode.trim()) newErrors.postcode = 'Postcode is required';
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -71,25 +76,28 @@ export function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     if (validateForm()) {
       setIsSubmitting(true);
-      
+
       try {
         // Remove confirmPassword as it's not needed in the API
         const { confirmPassword, ...registrationData } = formData;
-        
+
         // Use our API utility to register
         const userData = await api.auth.register(registrationData);
-        
+
         // Login the user with our auth context
         login(userData);
-        
+
         // Redirect to home page after successful registration
         navigate('/');
       } catch (error) {
         console.error('Registration error:', error);
-        setError(error.message || 'Registration failed. Please check your information and try again.');
+        setError(
+          error.message ||
+            'Registration failed. Please check your information and try again.'
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -100,19 +108,15 @@ export function Register() {
     <div className="container">
       <div className="register-page">
         <h1 className="page-title">Create an Account</h1>
-        
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
-        
+
+        {error && <div className="error-message">{error}</div>}
+
         <form onSubmit={handleSubmit} className="register-form">
           <div className="form-grid">
             {/* Personal Information */}
             <div className="form-section">
               <h2 className="section-title">Personal Information</h2>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="first_name">First Name *</label>
@@ -124,9 +128,11 @@ export function Register() {
                     onChange={handleChange}
                     className={errors.first_name ? 'input-error' : ''}
                   />
-                  {errors.first_name && <span className="error">{errors.first_name}</span>}
+                  {errors.first_name && (
+                    <span className="error">{errors.first_name}</span>
+                  )}
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="last_name">Last Name *</label>
                   <input
@@ -137,10 +143,12 @@ export function Register() {
                     onChange={handleChange}
                     className={errors.last_name ? 'input-error' : ''}
                   />
-                  {errors.last_name && <span className="error">{errors.last_name}</span>}
+                  {errors.last_name && (
+                    <span className="error">{errors.last_name}</span>
+                  )}
                 </div>
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="email">Email *</label>
@@ -152,9 +160,11 @@ export function Register() {
                     onChange={handleChange}
                     className={errors.email ? 'input-error' : ''}
                   />
-                  {errors.email && <span className="error">{errors.email}</span>}
+                  {errors.email && (
+                    <span className="error">{errors.email}</span>
+                  )}
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="phone_number">Phone Number</label>
                   <input
@@ -166,7 +176,7 @@ export function Register() {
                   />
                 </div>
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="password">Password *</label>
@@ -178,9 +188,11 @@ export function Register() {
                     onChange={handleChange}
                     className={errors.password ? 'input-error' : ''}
                   />
-                  {errors.password && <span className="error">{errors.password}</span>}
+                  {errors.password && (
+                    <span className="error">{errors.password}</span>
+                  )}
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="confirmPassword">Confirm Password *</label>
                   <input
@@ -191,15 +203,17 @@ export function Register() {
                     onChange={handleChange}
                     className={errors.confirmPassword ? 'input-error' : ''}
                   />
-                  {errors.confirmPassword && <span className="error">{errors.confirmPassword}</span>}
+                  {errors.confirmPassword && (
+                    <span className="error">{errors.confirmPassword}</span>
+                  )}
                 </div>
               </div>
             </div>
-            
+
             {/* Address Information */}
             <div className="form-section">
               <h2 className="section-title">Address Information</h2>
-              
+
               <div className="form-group full-width">
                 <label htmlFor="street_address">Street Address *</label>
                 <input
@@ -210,9 +224,11 @@ export function Register() {
                   onChange={handleChange}
                   className={errors.street_address ? 'input-error' : ''}
                 />
-                {errors.street_address && <span className="error">{errors.street_address}</span>}
+                {errors.street_address && (
+                  <span className="error">{errors.street_address}</span>
+                )}
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="suburb">Suburb *</label>
@@ -224,9 +240,11 @@ export function Register() {
                     onChange={handleChange}
                     className={errors.suburb ? 'input-error' : ''}
                   />
-                  {errors.suburb && <span className="error">{errors.suburb}</span>}
+                  {errors.suburb && (
+                    <span className="error">{errors.suburb}</span>
+                  )}
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="state">State *</label>
                   <select
@@ -246,9 +264,11 @@ export function Register() {
                     <option value="ACT">Australian Capital Territory</option>
                     <option value="NT">Northern Territory</option>
                   </select>
-                  {errors.state && <span className="error">{errors.state}</span>}
+                  {errors.state && (
+                    <span className="error">{errors.state}</span>
+                  )}
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="postcode">Postcode *</label>
                   <input
@@ -259,12 +279,14 @@ export function Register() {
                     onChange={handleChange}
                     className={errors.postcode ? 'input-error' : ''}
                   />
-                  {errors.postcode && <span className="error">{errors.postcode}</span>}
+                  {errors.postcode && (
+                    <span className="error">{errors.postcode}</span>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-          
+
           <div className="form-actions">
             <button
               type="submit"
@@ -274,7 +296,7 @@ export function Register() {
               {isSubmitting ? 'Creating Account...' : 'Create Account'}
             </button>
           </div>
-          
+
           <div className="login-link">
             Already have an account? <a href="/login">Login here</a>
           </div>
