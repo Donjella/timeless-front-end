@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/watch-modal.css';
 import { api } from '../utils/api';
+import { Upload, X } from 'lucide-react';
 
-// Simple Close icon component
+// Simple icon components
 const CloseIcon = () => <span className="icon">×</span>;
 const PlusIcon = () => <span className="icon">+</span>;
 
@@ -14,6 +15,7 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
     rental_day_price: '',
     condition: 'Good',
     quantity: 5,
+    image_url: '', // Added for image URL support
   });
 
   const [brands, setBrands] = useState([]);
@@ -22,6 +24,7 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
   const [isAddingBrand, setIsAddingBrand] = useState(false);
   const [newBrandName, setNewBrandName] = useState('');
   const [brandError, setBrandError] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   // Valid condition options from backend
   const validConditions = ['New', 'Excellent', 'Good', 'Fair', 'Poor'];
@@ -66,7 +69,15 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
         rental_day_price: watch.rental_day_price || '',
         condition: watch.condition || 'Good',
         quantity: watch.quantity || 5,
+        image_url: watch.image_url || '',
       });
+      
+      // Set image preview if there's an image URL
+      if (watch.image_url) {
+        setImagePreview(watch.image_url);
+      } else {
+        setImagePreview(null);
+      }
     } else if (brands.length > 0) {
       // Reset form for add mode - ensure brand_id is set
       setFormData({
@@ -76,7 +87,9 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
         rental_day_price: '',
         condition: 'Good',
         quantity: 5,
+        image_url: '',
       });
+      setImagePreview(null);
     }
   }, [watch, isOpen, brands]);
 
@@ -96,6 +109,11 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
         ...formData,
         [name]: value,
       });
+      
+      // Handle image URL change separately to update preview
+      if (name === 'image_url') {
+        setImagePreview(value);
+      }
     }
   };
 
@@ -164,6 +182,11 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // A helper function to handle image preview errors
+  const handleImageError = () => {
+    setImagePreview(null);
   };
 
   if (!isOpen) return null;
@@ -323,6 +346,39 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Image URL input */}
+          <div className="form-group">
+            <label htmlFor="image_url">Image URL</label>
+            <div className="image-input-container">
+              <input
+                type="text"
+                id="image_url"
+                name="image_url"
+                placeholder="https://example.com/watch-image.jpg"
+                value={formData.image_url}
+                onChange={handleChange}
+              />
+              <div className="image-preview-container">
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Watch preview"
+                    className="image-preview"
+                    onError={handleImageError}
+                  />
+                ) : (
+                  <div className="image-placeholder">
+                    <Upload size={24} />
+                    <span>No image</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <p className="help-text">
+              Enter a URL for the watch image. For production, you would implement file upload functionality.
+            </p>
           </div>
 
           <div className="form-actions">
