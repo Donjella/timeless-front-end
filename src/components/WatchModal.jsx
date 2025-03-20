@@ -1,371 +1,465 @@
 import React, { useState, useEffect } from 'react';
-import { Filter as FilterIcon, Search } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import '../styles/watch-modal.css';
 import { api } from '../utils/api';
-import WatchModal from './WatchModal';
-import { getImagePlaceholder } from '../utils/imageUtils';
-import '../styles/watch-catalog.css';
+import { Upload, X } from 'lucide-react';
+import { validateImageUrl, isImageUrlAccessible, getImagePlaceholder } from '../utils/imageUtils';
 
-const WatchCatalog = () => {
-  const navigate = useNavigate();
-  const [watches, setWatches] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedWatch, setSelectedWatch] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentWatch, setCurrentWatch] = useState(null);
-  
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState('');
-  const [brandFilters, setBrandFilters] = useState({});
-  const [priceValue, setPriceValue] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(150);
-  const [conditionFilter, setConditionFilter] = useState('Any');
-  
-  // Brand list for filters
+// Simple icon components
+const CloseIcon = () => <span className="icon">×</span>;
+const PlusIcon = () => <span className="icon">+</span>;
+
+const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
+  const [formData, setFormData] = useState({
+    brand_id: '', 
+    model: '',
+    year: new Date().getFullYear(),
+    rental_day_price: '',
+    condition: 'Good',
+    quantity: 5,
+    image_url: '',
+  });
+
   const [brands, setBrands] = useState([]);
-  
-  // Authentication state
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [isAddingBrand, setIsAddingBrand] = useState(false);
+  const [newBrandName, setNewBrandName] = useState('');
+  const [brandError, setBrandError] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageError, setImageError] = useState(null);
 
-  // Check if user is admin
-  useEffect(() => {
-    const checkAdmin = () => {
-      const auth = JSON.parse(localStorage.getItem('auth') || '{}');
-      setIsAdmin(auth.user?.role === 'admin');
-    };
-    
-    checkAdmin();
-    window.addEventListener('storage', checkAdmin);
-    
-    return () => {
-      window.removeEventListener('storage', checkAdmin);
-    };
-  }, []);
+  // Valid condition options from backend
+  const validConditions = ['New', 'Excellent', 'Good', 'Fair', 'Poor'];
 
-  // Fetch watches and brands on component mount
+  // Fetch brands on component mount
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchBrands = async () => {
       setLoading(true);
       try {
-        const [watchesData, brandsData] = await Promise.all([
-          api.watches.getAll(),
-          api.brands.getAll()
-        ]);
-        
-        setWatches(watchesData);
+        const brandsData = await api.brands.getAll();
         setBrands(brandsData);
-        
-        // Initialize brand filters
-        const initialBrandFilters = {};
-        brandsData.forEach(brand => {
-          initialBrandFilters[brand._id] = false;
-        });
-        setBrandFilters(initialBrandFilters);
-        
-        // Find max price for range input
-        if (watchesData.length > 0) {
-          const highestPrice = Math.max(...watchesData.map(w => w.rental_day_price));
-          setMaxPrice(highestPrice);
+
+        // If no brand is selected and brands exist, select the first one
+        if (!formData.brand_id && brandsData.length > 0) {
+          setFormData((prev) => ({
+            ...prev,
+            brand_id: brandsData[0]._id,
+          }));
         }
       } catch (err) {
-        console.error('Error fetching data:', err);
-        setError(err.message || 'Failed to load watches. Please try again later.');
+        setError('Failed to load brands. Please try again.');
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    if (isOpen) {
+      fetchBrands();
+    }
+  }, [isOpen]);
 
-  // Handle watch creation or update
-  const handleSaveWatch = async (watchData, mode) => {
-    try {
-      let updatedWatch;
+  // Reset or populate form when watch or modal changes
+  useEffect(() => {
+    if (watch) {
+      // Edit mode
+      setFormData({
+        brand_id: watch.brand && watch.brand._id ? watch.brand._id : watch.brand,
+        model: watch.model || '',
+        year: watch.year || new Date().getFullYear(),
+        rental_day_price: watch.rental_day_price || '',
+        condition: watch.condition || 'Good',
+        quantity: watch.quantity || 5,
+        image_url: watch.image_url || '',
+      });
       
-      if (mode === 'edit' && currentWatch) {
-        updatedWatch = await api.watches.update(currentWatch._id, watchData);
-        
-        // Update watches list
-        setWatches(watches.map(w => 
-          w._id === updatedWatch._id ? updatedWatch : w
-        ));
+      // Set image preview if there's an image URL
+      if (watch.image_url) {
+        setImagePreview(watch.image_url);
       } else {
-        updatedWatch = await api.watches.create(watchData);
-        
-        // Add to watches list
-        setWatches([...watches, updatedWatch]);
+        setImagePreview(null);
       }
+    } else if (brands.length > 0) {
+      // Add mode - reset form
+      setFormData({
+        brand_id: brands[0]._id,
+        model: '',
+        year: new Date().getFullYear(),
+        rental_day_price: '',
+        condition: 'Good',
+        quantity: 5,
+        image_url: '',
+      });
+      setImagePreview(null);
+    }
+  }, [watch, isOpen, brands]);
+
+  // Validate and check image URL
+  const validateAndCheckImage = async (url) => {
+    setImageError(null);
+    
+    // Skip validation for empty URLs
+    if (!url) {
+      setImagePreview(null);
+      return true;
+    }
+
+    // Basic URL validation
+    if (!validateImageUrl(url)) {
+      setImageError('Please enter a valid image URL');
+      setImagePreview(null);
+      return false;
+    }
+
+    try {
+      // Check if image is accessible
+      const isAccessible = await isImageUrlAccessible(url);
       
-      setIsModalOpen(false);
-      setCurrentWatch(null);
-    } catch (err) {
-      console.error('Error saving watch:', err);
-      setError(err.message || 'Failed to save watch. Please try again.');
+      if (isAccessible) {
+        setImagePreview(url);
+        setImageError(null);
+        return true;
+      } else {
+        setImageError('Cannot load image. Please check the URL.');
+        setImagePreview(getImagePlaceholder());
+        return false;
+      }
+    } catch (error) {
+      setImageError('Error checking image URL');
+      setImagePreview(null);
+      return false;
     }
   };
 
-  // Handle rental action
-  const handleRent = (watch) => {
-    // Check if user is logged in
-    const auth = JSON.parse(localStorage.getItem('auth') || '{}');
-    if (!auth.token) {
-      // Redirect to login page
-      navigate('/login?redirect=/rent?watch=' + watch._id);
+  // Handle input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // Numeric field handling
+    if (name === 'year' || name === 'rental_day_price' || name === 'quantity') {
+      const numericValue = Number(value);
+      setFormData({
+        ...formData,
+        [name]: numericValue,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+      
+      // Handle image URL change
+      if (name === 'image_url') {
+        validateAndCheckImage(value);
+      }
+    }
+  };
+
+  // Submit form handler
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Ensure brand_id is set
+    if (!formData.brand_id && brands.length > 0) {
+      setFormData({
+        ...formData,
+        brand_id: brands[0]._id,
+      });
+    }
+
+    // Check for required fields
+    if (!formData.brand_id) {
+      setError('Please select a brand or add a new one');
       return;
     }
-    
-    // Navigate to rental page with watch ID
-    navigate('/rent?watch=' + watch._id);
+
+    // Validate image URL if provided
+    if (formData.image_url) {
+      const isValid = await validateAndCheckImage(formData.image_url);
+      if (!isValid) {
+        return;
+      }
+    }
+
+    // Convert numeric strings to actual numbers
+    const processedData = {
+      ...formData,
+      year: Number(formData.year),
+      rental_day_price: Number(formData.rental_day_price),
+      quantity: Number(formData.quantity),
+    };
+
+    // Submit the form
+    onSave(processedData, watch ? 'edit' : 'add');
   };
 
-  // Filter watches based on filters
-  const filteredWatches = watches.filter(watch => {
-    // Search term filter
-    const matchesSearch = searchTerm === '' || 
-      watch.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (watch.brand.brand_name && watch.brand.brand_name.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    // Brand filter - if no brands are selected, show all
-    const anyBrandSelected = Object.values(brandFilters).some(selected => selected);
-    const matchesBrand = !anyBrandSelected || brandFilters[watch.brand._id];
-    
-    // Price range filter
-    const matchesPrice = priceValue === 0 || watch.rental_day_price >= priceValue;
-    
-    // Condition filter
-    const matchesCondition = conditionFilter === 'Any' || watch.condition === conditionFilter;
-    
-    return matchesSearch && matchesBrand && matchesPrice && matchesCondition;
-  });
-
-  // Toggle brand filter
-  const toggleBrandFilter = (brandId) => {
-    setBrandFilters({
-      ...brandFilters,
-      [brandId]: !brandFilters[brandId]
-    });
+  // Toggle brand addition mode
+  const toggleAddBrand = () => {
+    setIsAddingBrand(!isAddingBrand);
+    setNewBrandName('');
+    setBrandError(null);
   };
 
-  // View watch details
-  const viewDetails = (watch) => {
-    setSelectedWatch(watch);
-    // You could navigate to a details page instead:
-    // navigate(`/watches/${watch._id}`);
+  // Handle new brand creation
+  const handleAddBrand = async () => {
+    if (!newBrandName.trim()) {
+      setBrandError('Brand name cannot be empty');
+      return;
+    }
+
+    setLoading(true);
+    setBrandError(null);
+
+    try {
+      const newBrand = await api.brands.create({
+        brand_name: newBrandName.trim(),
+      });
+      setBrands([...brands, newBrand]);
+
+      // Select the newly created brand
+      setFormData({
+        ...formData,
+        brand_id: newBrand._id,
+      });
+
+      // Reset new brand form
+      setNewBrandName('');
+      setIsAddingBrand(false);
+    } catch (err) {
+      setBrandError(err.message || 'Failed to create brand. Please try again.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Handle image preview errors
+  const handleImageError = () => {
+    setImagePreview(getImagePlaceholder());
+    setImageError('Failed to load image');
+  };
+
+  // Don't render if modal is closed
+  if (!isOpen) return null;
 
   return (
-    <div className="watch-catalog-container">
-      <h1>Watch Catalog</h1>
-      
-      <div className="search-row">
-        <div className="search-box">
-          <Search className="search-icon" size={16} />
-          <input 
-            type="text" 
-            placeholder="Search watches..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        
-        {isAdmin && (
-          <button 
-            className="add-watch-btn"
-            onClick={() => {
-              setCurrentWatch(null);
-              setIsModalOpen(true);
-            }}
-          >
-            Add New Watch
+    <div className="modal-overlay">
+      <div className="modal-container">
+        <div className="modal-header">
+          <h2>{watch ? 'Edit Watch' : 'Add New Watch'}</h2>
+          <button className="btn-close" onClick={onClose}>
+            <CloseIcon />
           </button>
+        </div>
+
+        {error && (
+          <div className="modal-error">
+            {error}
+            <button onClick={() => setError(null)} className="btn-close-error">
+              <CloseIcon />
+            </button>
+          </div>
         )}
-      </div>
-      
-      <div className="catalog-layout">
-        <div className="filters-sidebar">
-          <div className="filter-header">
-            <FilterIcon size={16} />
-            <h3>Filters</h3>
-          </div>
-          
-          <div className="filter-section">
-            <h4>Brand</h4>
-            <div className="brand-options">
-              {brands.map(brand => (
-                <div key={brand._id} className="brand-option">
-                  <input 
-                    type="checkbox" 
-                    id={`brand-${brand._id}`}
-                    checked={brandFilters[brand._id] || false}
-                    onChange={() => toggleBrandFilter(brand._id)}
-                  />
-                  <label htmlFor={`brand-${brand._id}`}>{brand.brand_name}</label>
+
+        <form onSubmit={handleSubmit} className="modal-form">
+          {/* Brand Selection */}
+          <div className="form-group">
+            <label htmlFor="brand_id">Brand</label>
+            {loading ? (
+              <div className="loading-indicator">Loading brands...</div>
+            ) : isAddingBrand ? (
+              <div className="new-brand-container">
+                <input
+                  type="text"
+                  id="new_brand_name"
+                  placeholder="Enter new brand name"
+                  value={newBrandName}
+                  onChange={(e) => setNewBrandName(e.target.value)}
+                  className={brandError ? 'error' : ''}
+                />
+                <div className="brand-actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={toggleAddBrand}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={handleAddBrand}
+                    disabled={loading}
+                  >
+                    Add
+                  </button>
                 </div>
-              ))}
-            </div>
+                {brandError && <div className="error-text">{brandError}</div>}
+              </div>
+            ) : (
+              <div className="select-with-button">
+                <select
+                  id="brand_id"
+                  name="brand_id"
+                  value={formData.brand_id}
+                  onChange={handleChange}
+                  required
+                  disabled={brands.length === 0}
+                >
+                  {brands.length === 0 ? (
+                    <option value="">No brands available</option>
+                  ) : (
+                    brands.map((brand) => (
+                      <option key={brand._id} value={brand._id}>
+                        {brand.brand_name}
+                      </option>
+                    ))
+                  )}
+                </select>
+                <button
+                  type="button"
+                  className="btn btn-icon"
+                  onClick={toggleAddBrand}
+                  title="Add new brand"
+                >
+                  <PlusIcon />
+                </button>
+              </div>
+            )}
           </div>
-          
-          <div className="filter-section">
-            <h4>Price Range</h4>
-            <input 
-              type="range" 
-              min="0" 
-              max={maxPrice}
-              value={priceValue}
-              onChange={(e) => setPriceValue(parseInt(e.target.value))}
-              className="price-slider"
+
+          {/* Model Input */}
+          <div className="form-group">
+            <label htmlFor="model">Model</label>
+            <input
+              type="text"
+              id="model"
+              name="model"
+              value={formData.model}
+              onChange={handleChange}
+              required
             />
-            <div className="price-labels">
-              <span>$0</span>
-              <span>${priceValue}</span>
-              <span>${maxPrice}</span>
+          </div>
+
+          {/* Numeric Inputs Row */}
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="year">Year</label>
+              <input
+                type="number"
+                id="year"
+                name="year"
+                value={formData.year}
+                onChange={handleChange}
+                min="1000"
+                max={new Date().getFullYear()}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="rental_day_price">Price/Day ($)</label>
+              <input
+                type="number"
+                id="rental_day_price"
+                name="rental_day_price"
+                value={formData.rental_day_price}
+                onChange={handleChange}
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="quantity">Quantity</label>
+              <input
+                type="number"
+                id="quantity"
+                name="quantity"
+                value={formData.quantity}
+                onChange={handleChange}
+                min="0"
+                required
+              />
             </div>
           </div>
-          
-          <div className="filter-section">
-            <h4>Condition</h4>
-            <select 
-              value={conditionFilter}
-              onChange={(e) => setConditionFilter(e.target.value)}
-              className="condition-select"
+
+          {/* Condition Selection */}
+          <div className="form-group">
+            <label htmlFor="condition">Condition</label>
+            <select
+              id="condition"
+              name="condition"
+              value={formData.condition}
+              onChange={handleChange}
+              required
             >
-              <option value="Any">Any</option>
-              <option value="New">New</option>
-              <option value="Excellent">Excellent</option>
-              <option value="Good">Good</option>
-              <option value="Fair">Fair</option>
-              <option value="Poor">Poor</option>
+              {validConditions.map((condition) => (
+                <option key={condition} value={condition}>
+                  {condition}
+                </option>
+              ))}
             </select>
           </div>
-        </div>
-        
-        <div className="watches-content">
-          {loading ? (
-            <div className="loading-message">Loading watches...</div>
-          ) : filteredWatches.length === 0 ? (
-            <div className="no-results-message">
-              <p>No watches found matching your criteria.</p>
-            </div>
-          ) : (
-            <div className="watches-list">
-              {filteredWatches.map(watch => (
-                <div key={watch._id} className="watch-card">
-                  <div className="watch-image">
-                    <img 
-                      src={watch.image_url || getImagePlaceholder()} 
-                      alt={`${watch.brand.brand_name} ${watch.model}`}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = getImagePlaceholder();
-                      }}
-                    />
+
+          {/* Image URL Input */}
+          <div className="form-group">
+            <label htmlFor="image_url">Image URL</label>
+            <div className="image-input-container">
+              <input
+                type="text"
+                id="image_url"
+                name="image_url"
+                placeholder="https://example.com/watch-image.jpg"
+                value={formData.image_url}
+                onChange={handleChange}
+              />
+              <div className="image-preview-container">
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Watch preview"
+                    className="image-preview"
+                    onError={handleImageError}
+                  />
+                ) : (
+                  <div className="image-placeholder">
+                    <Upload size={24} />
+                    <span>No image</span>
                   </div>
-                  <div className="watch-info">
-                    <h3>{watch.brand.brand_name} {watch.model}</h3>
-                    <p className="watch-price">${watch.rental_day_price}/day</p>
-                    <button 
-                      className="view-details-btn"
-                      onClick={() => viewDetails(watch)}
-                    >
-                      View Details
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {/* Watch details modal or custom component */}
-      {selectedWatch && (
-        <div className="watch-details-modal">
-          <div className="modal-content">
-            <button 
-              className="close-modal"
-              onClick={() => setSelectedWatch(null)}
-            >
-              ×
-            </button>
-            <div className="watch-details">
-              <div className="watch-details-image">
-                <img 
-                  src={selectedWatch.image_url || getImagePlaceholder()} 
-                  alt={`${selectedWatch.brand.brand_name} ${selectedWatch.model}`}
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = getImagePlaceholder();
-                  }}
-                />
-              </div>
-              <div className="watch-details-info">
-                <h2>{selectedWatch.brand.brand_name} {selectedWatch.model}</h2>
-                <p><strong>Year:</strong> {selectedWatch.year}</p>
-                <p><strong>Condition:</strong> {selectedWatch.condition}</p>
-                <p><strong>Price:</strong> ${selectedWatch.rental_day_price}/day</p>
-                <p><strong>Available:</strong> {selectedWatch.quantity} {selectedWatch.quantity === 1 ? 'unit' : 'units'}</p>
-                
-                <div className="watch-actions">
-                  <button 
-                    className="rent-btn"
-                    onClick={() => handleRent(selectedWatch)}
-                    disabled={selectedWatch.quantity < 1}
-                  >
-                    {selectedWatch.quantity < 1 ? 'Out of Stock' : 'Rent Now'}
-                  </button>
-                  
-                  {isAdmin && (
-                    <div className="admin-actions">
-                      <button 
-                        className="edit-btn"
-                        onClick={() => {
-                          setCurrentWatch(selectedWatch);
-                          setIsModalOpen(true);
-                          setSelectedWatch(null);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        className="delete-btn"
-                        onClick={async () => {
-                          if (window.confirm(`Are you sure you want to delete ${selectedWatch.brand.brand_name} ${selectedWatch.model}?`)) {
-                            try {
-                              await api.watches.delete(selectedWatch._id);
-                              setWatches(watches.filter(w => w._id !== selectedWatch._id));
-                              setSelectedWatch(null);
-                            } catch (err) {
-                              console.error('Error deleting watch:', err);
-                              setError(err.message || 'Failed to delete watch');
-                            }
-                          }
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             </div>
+            {imageError && (
+              <p className="error-text">{imageError}</p>
+            )}
+            <p className="help-text">
+              Enter a URL for the watch image. Ensure it's a direct link to an image.
+            </p>
           </div>
-        </div>
-      )}
-      
-      {/* Watch Modal for adding/editing */}
-      <WatchModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setCurrentWatch(null);
-        }}
-        watch={currentWatch}
-        onSave={handleSaveWatch}
-      />
+
+          {/* Form Actions */}
+          <div className="form-actions">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading || (brands.length === 0 && !isAddingBrand)}
+            >
+              {watch ? 'Update Watch' : 'Add Watch'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
 
-export default WatchCatalog;
+export default WatchModal;

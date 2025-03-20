@@ -156,15 +156,37 @@
     align-items: center;
     justify-content: center;
   }
-  
-  /* Loading */
-  .loading {
-    text-align: center;
-    padding: 16px;
-    color: #1890ff;
-    font-style: italic;
+
+  .api-error-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background-color: #fff2f0;
+    border: 1px solid #ffccc7;
+    padding: 24px;
+    border-radius: 8px;
+    margin-top: 24px;
   }
   
+  .api-error-message h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: #cf1322;
+  }
+  
+  .api-error-message svg {
+    color: #cf1322;
+    flex-shrink: 0;
+  }
+  
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 16px;
+      color: #1890ff;
+      font-style: italic;
+    }
+
   /* Empty State */
   .empty-state {
     display: flex;
