@@ -114,6 +114,7 @@ export function UserProfile (){
         }
     };
 
+    // UI for user profile page, styling in css file
     return (
         <main className="container" role="main">
           <article className="profile-page">
