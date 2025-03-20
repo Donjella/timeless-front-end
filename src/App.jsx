@@ -1,16 +1,18 @@
+import React from 'react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
+  Link
 } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import './styles/App.css';
 import { BasePageLayout } from './pages/layouts/BasePageLayout';
 import { Register } from './pages/Register';
 import { Login } from './pages/Login';
-import { useAuthData } from './hooks/useAuthData';
 import AdminDashboard from './components/AdminDashboard';
+import WatchCatalog from './components/WatchCatalog';
+import { useAuthData } from './hooks/useAuthData';
 
 function App() {
   const { authData } = useAuthData();
@@ -34,7 +36,7 @@ function App() {
 
   // PropTypes validation for AdminRoute
   AdminRoute.propTypes = {
-    children: PropTypes.node.isRequired,
+    children: React.PropTypes?.node
   };
 
   // Simple placeholder for HomePage
@@ -44,13 +46,34 @@ function App() {
         <h1>Welcome to Timeless</h1>
         <p className="tagline">Premium luxury watches for any occasion</p>
         <div className="home-cta">
-          <a href="/catalog" className="btn">
+          <Link to="/catalog" className="btn">
             Browse Our Collection
-          </a>
+          </Link>
         </div>
       </div>
     );
   };
+
+  // Placeholder for About and Contact pages
+  const AboutPage = () => (
+    <div className="page-content">
+      <h1>About Timeless</h1>
+      <p>We are a luxury watch rental service providing premium timepieces for any occasion.</p>
+      <p>Founded in 2023, Timeless has quickly become the go-to destination for watch enthusiasts who want to experience the finest watches without the commitment of ownership.</p>
+    </div>
+  );
+
+  const ContactPage = () => (
+    <div className="page-content">
+      <h1>Contact Us</h1>
+      <p>We'd love to hear from you! Please contact us using the information below:</p>
+      <div className="contact-info">
+        <p><strong>Email:</strong> info@timeless-watches.com</p>
+        <p><strong>Phone:</strong> (02) 1234 5678</p>
+        <p><strong>Address:</strong> 123 Watch Lane, Sydney, NSW 2000</p>
+      </div>
+    </div>
+  );
 
   return (
     <Router>
@@ -58,15 +81,9 @@ function App() {
         <Route path="/" element={<BasePageLayout />}>
           {/* Public routes */}
           <Route index element={<HomePage />} />
-          <Route
-            path="catalog"
-            element={<div>Catalog Page (Placeholder)</div>}
-          />
-          <Route path="about" element={<div>About Page (Placeholder)</div>} />
-          <Route
-            path="contact"
-            element={<div>Contact Page (Placeholder)</div>}
-          />
+          <Route path="catalog" element={<WatchCatalog />} />
+          <Route path="about" element={<AboutPage />} />
+          <Route path="contact" element={<ContactPage />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
 
@@ -81,7 +98,7 @@ function App() {
           />
 
           {/* Not found */}
-          <Route path="*" element={<div>404 - Page Not Found</div>} />
+          <Route path="*" element={<div className="not-found">404 - Page Not Found</div>} />
         </Route>
       </Routes>
     </Router>
