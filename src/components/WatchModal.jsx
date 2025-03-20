@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import '../styles/watch-modal.css';
 import { api } from '../utils/api';
 import { Upload, X } from 'lucide-react';
-import { validateImageUrl, isImageUrlAccessible, getImagePlaceholder } from '../utils/imageUtils';
+import {
+  validateImageUrl,
+  isImageUrlAccessible,
+  getImagePlaceholder,
+} from '../utils/imageUtils';
 
 // Simple icon components
 const CloseIcon = () => <span className="icon">×</span>;
@@ -10,7 +14,7 @@ const PlusIcon = () => <span className="icon">+</span>;
 
 const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
   const [formData, setFormData] = useState({
-    brand_id: '', 
+    brand_id: '',
     model: '',
     year: new Date().getFullYear(),
     rental_day_price: '',
@@ -64,7 +68,8 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
     if (watch) {
       // Edit mode
       setFormData({
-        brand_id: watch.brand && watch.brand._id ? watch.brand._id : watch.brand,
+        brand_id:
+          watch.brand && watch.brand._id ? watch.brand._id : watch.brand,
         model: watch.model || '',
         year: watch.year || new Date().getFullYear(),
         rental_day_price: watch.rental_day_price || '',
@@ -72,7 +77,7 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
         quantity: watch.quantity || 5,
         image_url: watch.image_url || '',
       });
-      
+
       // Set image preview if there's an image URL
       if (watch.image_url) {
         setImagePreview(watch.image_url);
@@ -97,7 +102,7 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
   // Validate and check image URL
   const validateAndCheckImage = async (url) => {
     setImageError(null);
-    
+
     // Skip validation for empty URLs
     if (!url) {
       setImagePreview(null);
@@ -114,7 +119,7 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
     try {
       // Check if image is accessible
       const isAccessible = await isImageUrlAccessible(url);
-      
+
       if (isAccessible) {
         setImagePreview(url);
         setImageError(null);
@@ -147,7 +152,7 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
         ...formData,
         [name]: value,
       });
-      
+
       // Handle image URL change
       if (name === 'image_url') {
         validateAndCheckImage(value);
@@ -431,11 +436,10 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
                 )}
               </div>
             </div>
-            {imageError && (
-              <p className="error-text">{imageError}</p>
-            )}
+            {imageError && <p className="error-text">{imageError}</p>}
             <p className="help-text">
-              Enter a URL for the watch image. Ensure it's a direct link to an image.
+              Enter a URL for the watch image. Ensure it's a direct link to an
+              image.
             </p>
           </div>
 

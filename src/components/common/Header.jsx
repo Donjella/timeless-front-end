@@ -1,19 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthData } from '../../hooks/useAuthData';
+import { User, Watch } from 'lucide-react';
 import '../../styles/header.css';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { authData, logout } = useAuthData();
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
   // Check if user is an admin
   const isAdmin =
     authData.isAuthenticated && authData.user && authData.user.role === 'admin';
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
 
   return (
     <header className="header">
@@ -48,11 +49,22 @@ export function Header() {
                 <span className="welcome-message">
                   Welcome, {authData.user.first_name}
                 </span>
+
+                {/* My Rentals button for regular users */}
+                {!isAdmin && (
+                  <Link to="/account/rentals" className="rentals-btn">
+                    <Watch size={18} />
+                    <span>My Rentals</span>
+                  </Link>
+                )}
+
+                {/* Admin Dashboard button */}
                 {isAdmin && (
                   <Link to="/admin" className="admin-btn">
                     Admin Dashboard
                   </Link>
                 )}
+
                 <button onClick={logout} className="logout-btn">
                   Logout
                 </button>
@@ -66,7 +78,7 @@ export function Header() {
           <ul>
             <li>
               <Link to="/catalog" onClick={() => setMobileMenuOpen(false)}>
-                Catalog
+                Watch Catalog
               </Link>
             </li>
             <li>
@@ -79,6 +91,16 @@ export function Header() {
                 Contact
               </Link>
             </li>
+            {authData.isAuthenticated && !isAdmin && (
+              <li>
+                <Link
+                  to="/account/rentals"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  My Rentals
+                </Link>
+              </li>
+            )}
             {isAdmin && (
               <li>
                 <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
@@ -107,7 +129,7 @@ export function Header() {
         <div className="header-container">
           <ul className="nav-links">
             <li>
-              <Link to="/catalog">Catalog</Link>
+              <Link to="/catalog">Watch Catalog</Link>
             </li>
             <li>
               <Link to="/about">About</Link>
@@ -115,6 +137,11 @@ export function Header() {
             <li>
               <Link to="/contact">Contact</Link>
             </li>
+            {isAdmin && (
+              <li>
+                <Link to="/admin">Admin Dashboard</Link>
+              </li>
+            )}
           </ul>
         </div>
       </nav>

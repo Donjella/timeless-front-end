@@ -15,17 +15,17 @@ const WatchCatalog = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentWatch, setCurrentWatch] = useState(null);
   const [apiConnectionFailed, setApiConnectionFailed] = useState(false);
-  
+
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [brandFilters, setBrandFilters] = useState({});
   const [priceValue, setPriceValue] = useState(0);
   const [maxPrice, setMaxPrice] = useState(150);
   const [conditionFilter, setConditionFilter] = useState('Any');
-  
+
   // Brand list for filters
   const [brands, setBrands] = useState([]);
-  
+
   // Authentication state
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -35,10 +35,10 @@ const WatchCatalog = () => {
       const auth = JSON.parse(localStorage.getItem('auth') || '{}');
       setIsAdmin(auth.user?.role === 'admin');
     };
-    
+
     checkAdmin();
     window.addEventListener('storage', checkAdmin);
-    
+
     return () => {
       window.removeEventListener('storage', checkAdmin);
     };
@@ -48,13 +48,13 @@ const WatchCatalog = () => {
   useEffect(() => {
     // Flag to prevent state updates if component unmounts during API call
     let isMounted = true;
-    
+
     const fetchData = async () => {
       if (!isMounted) return;
-      
+
       setLoading(true);
       setError(null);
-      
+
       // Set a timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
         if (isMounted && loading) {
@@ -63,55 +63,57 @@ const WatchCatalog = () => {
           setApiConnectionFailed(true);
         }
       }, 15000); // 15 second timeout
-      
+
       try {
         // Fetch both watches and brands in parallel
         const [watchesData, brandsData] = await Promise.all([
-          api.watches.getAll().catch(err => {
+          api.watches.getAll().catch((err) => {
             console.error('Error fetching watches:', err);
             throw err;
           }),
-          api.brands.getAll().catch(err => {
+          api.brands.getAll().catch((err) => {
             console.error('Error fetching brands:', err);
             throw err;
           }),
         ]);
-        
+
         // Clear timeout as request succeeded
         clearTimeout(timeoutId);
-        
+
         if (!isMounted) return;
-        
+
         // Check if the data is valid
         if (!Array.isArray(watchesData) || !Array.isArray(brandsData)) {
           console.error('Invalid data format:', { watchesData, brandsData });
           throw new Error('Invalid data format received from server');
         }
-        
+
         // Initialize brand filters
         const initialBrandFilters = {};
-        brandsData.forEach(brand => {
+        brandsData.forEach((brand) => {
           if (brand && brand._id) {
             initialBrandFilters[brand._id] = false;
           }
         });
-        
+
         if (isMounted) {
           setWatches(watchesData);
           setBrands(brandsData);
           setBrandFilters(initialBrandFilters);
-          
+
           // Find max price for range input
           if (watchesData.length > 0) {
-            const highestPrice = Math.max(...watchesData.map(w => w.rental_day_price || 0));
+            const highestPrice = Math.max(
+              ...watchesData.map((w) => w.rental_day_price || 0)
+            );
             setMaxPrice(highestPrice || 150);
           }
-          
+
           setApiConnectionFailed(false);
         }
       } catch (err) {
         clearTimeout(timeoutId);
-        
+
         if (isMounted) {
           console.error('Error in fetchData:', err);
           setError(`Failed to fetch data: ${err.message || 'Unknown error'}`);
@@ -125,7 +127,7 @@ const WatchCatalog = () => {
     };
 
     fetchData();
-    
+
     // Cleanup function to prevent state updates after unmount
     return () => {
       isMounted = false;
@@ -138,10 +140,10 @@ const WatchCatalog = () => {
       setError('No watch data provided');
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     // Set a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       if (loading) {
@@ -152,21 +154,21 @@ const WatchCatalog = () => {
 
     try {
       let updatedWatch;
-      
+
       if (mode === 'edit' && currentWatch) {
         updatedWatch = await api.watches.update(currentWatch._id, watchData);
-        
+
         // Update watches list
-        setWatches(watches.map(w => 
-          w._id === updatedWatch._id ? updatedWatch : w
-        ));
+        setWatches(
+          watches.map((w) => (w._id === updatedWatch._id ? updatedWatch : w))
+        );
       } else {
         updatedWatch = await api.watches.create(watchData);
-        
+
         // Add to watches list
         setWatches([...watches, updatedWatch]);
       }
-      
+
       clearTimeout(timeoutId);
       setIsModalOpen(false);
       setCurrentWatch(null);
@@ -182,48 +184,68 @@ const WatchCatalog = () => {
   // Handle rental action (for users)
   const handleRent = (watch) => {
     if (!watch || !watch._id) return;
-    
+
     // Check if user is logged in
     const auth = JSON.parse(localStorage.getItem('auth') || '{}');
     if (!auth.token) {
       // Redirect to login page
-      navigate('/login?redirect=/rent?watch=' + watch._id);
+      navigate('/login?redirect=/checkout');
       return;
     }
-    
-    // Navigate to rental page with watch ID
-    navigate('/rent?watch=' + watch._id);
+
+    // Prepare checkout item in session storage
+    const checkoutItem = {
+      watch: watch,
+      watchId: watch._id,
+      rentalDays: 3, // Default to 3 days, you might want to make this configurable
+      startDate: new Date().toISOString(),
+      total: watch.rental_day_price * 3, // Calculate total for default 3 days
+    };
+
+    // Store in sessionStorage for checkout process
+    sessionStorage.setItem('checkoutItems', JSON.stringify([checkoutItem]));
+
+    // Navigate to checkout
+    navigate('/checkout');
   };
 
   // Filter watches based on filters
-  const filteredWatches = watches.filter(watch => {
+  const filteredWatches = watches.filter((watch) => {
     if (!watch) return false;
-    
+
     // Search term filter
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch =
+      searchTerm === '' ||
       watch.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (watch.brand?.brand_name && watch.brand.brand_name.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+      (watch.brand?.brand_name &&
+        watch.brand.brand_name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()));
+
     // Brand filter - if no brands are selected, show all
-    const anyBrandSelected = Object.values(brandFilters).some(selected => selected);
+    const anyBrandSelected = Object.values(brandFilters).some(
+      (selected) => selected
+    );
     const matchesBrand = !anyBrandSelected || brandFilters[watch.brand?._id];
-    
+
     // Price range filter
-    const matchesPrice = priceValue === 0 || (watch.rental_day_price >= priceValue);
-    
+    const matchesPrice =
+      priceValue === 0 || watch.rental_day_price >= priceValue;
+
     // Condition filter
-    const matchesCondition = conditionFilter === 'Any' || watch.condition === conditionFilter;
-    
+    const matchesCondition =
+      conditionFilter === 'Any' || watch.condition === conditionFilter;
+
     return matchesSearch && matchesBrand && matchesPrice && matchesCondition;
   });
 
   // Toggle brand filter
   const toggleBrandFilter = (brandId) => {
     if (!brandId) return;
-    
+
     setBrandFilters({
       ...brandFilters,
-      [brandId]: !brandFilters[brandId]
+      [brandId]: !brandFilters[brandId],
     });
   };
 
@@ -236,14 +258,14 @@ const WatchCatalog = () => {
   // Clear all filters
   const clearFilters = () => {
     setSearchTerm('');
-    
+
     const resetBrandFilters = {};
-    brands.forEach(brand => {
+    brands.forEach((brand) => {
       if (brand && brand._id) {
         resetBrandFilters[brand._id] = false;
       }
     });
-    
+
     setBrandFilters(resetBrandFilters);
     setPriceValue(0);
     setConditionFilter('Any');
@@ -258,9 +280,12 @@ const WatchCatalog = () => {
           <AlertCircle size={24} />
           <div>
             <h3>Connection Error</h3>
-            <p>{error || 'Failed to connect to the server. Please try again later.'}</p>
-            <button 
-              className="btn btn-primary" 
+            <p>
+              {error ||
+                'Failed to connect to the server. Please try again later.'}
+            </p>
+            <button
+              className="btn btn-primary"
               onClick={() => window.location.reload()}
             >
               Retry Connection
@@ -274,20 +299,20 @@ const WatchCatalog = () => {
   return (
     <div className="watch-catalog-container">
       <h1>Watch Catalog</h1>
-      
+
       <div className="search-row">
         <div className="search-box">
           <Search className="search-icon" size={16} />
-          <input 
-            type="text" 
-            placeholder="Search watches..." 
+          <input
+            type="text"
+            placeholder="Search watches..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
+
         {isAdmin && (
-          <button 
+          <button
             className="add-watch-btn"
             onClick={() => {
               setCurrentWatch(null);
@@ -298,52 +323,59 @@ const WatchCatalog = () => {
           </button>
         )}
       </div>
-      
+
       {error && !apiConnectionFailed && (
         <div className="error-message">
           {error}
-          <button className="error-close" onClick={() => setError(null)}>×</button>
+          <button className="error-close" onClick={() => setError(null)}>
+            ×
+          </button>
         </div>
       )}
-      
+
       <div className="catalog-layout">
         <div className="filters-sidebar">
           <div className="filter-header">
             <FilterIcon size={16} />
             <h3>Filters</h3>
-            {(searchTerm || Object.values(brandFilters).some(v => v) || 
-              priceValue > 0 || conditionFilter !== 'Any') && (
-              <button 
-                className="clear-filters-btn"
-                onClick={clearFilters}
-              >
+            {(searchTerm ||
+              Object.values(brandFilters).some((v) => v) ||
+              priceValue > 0 ||
+              conditionFilter !== 'Any') && (
+              <button className="clear-filters-btn" onClick={clearFilters}>
                 Clear All
               </button>
             )}
           </div>
-          
+
           <div className="filter-section">
             <h4>Brand</h4>
             <div className="brand-options">
-              {brands.map(brand => brand && brand._id && (
-                <div key={brand._id} className="brand-option">
-                  <input 
-                    type="checkbox" 
-                    id={`brand-${brand._id}`}
-                    checked={brandFilters[brand._id] || false}
-                    onChange={() => toggleBrandFilter(brand._id)}
-                  />
-                  <label htmlFor={`brand-${brand._id}`}>{brand.brand_name}</label>
-                </div>
-              ))}
+              {brands.map(
+                (brand) =>
+                  brand &&
+                  brand._id && (
+                    <div key={brand._id} className="brand-option">
+                      <input
+                        type="checkbox"
+                        id={`brand-${brand._id}`}
+                        checked={brandFilters[brand._id] || false}
+                        onChange={() => toggleBrandFilter(brand._id)}
+                      />
+                      <label htmlFor={`brand-${brand._id}`}>
+                        {brand.brand_name}
+                      </label>
+                    </div>
+                  )
+              )}
             </div>
           </div>
-          
+
           <div className="filter-section">
             <h4>Price Range</h4>
-            <input 
-              type="range" 
-              min="0" 
+            <input
+              type="range"
+              min="0"
               max={maxPrice}
               value={priceValue}
               onChange={(e) => setPriceValue(parseInt(e.target.value))}
@@ -355,10 +387,10 @@ const WatchCatalog = () => {
               <span>${maxPrice}</span>
             </div>
           </div>
-          
+
           <div className="filter-section">
             <h4>Condition</h4>
-            <select 
+            <select
               value={conditionFilter}
               onChange={(e) => setConditionFilter(e.target.value)}
               className="condition-select"
@@ -372,7 +404,7 @@ const WatchCatalog = () => {
             </select>
           </div>
         </div>
-        
+
         <div className="watches-content">
           {loading ? (
             <div className="loading-message">Loading watches...</div>
@@ -382,43 +414,50 @@ const WatchCatalog = () => {
             </div>
           ) : (
             <div className="watches-list">
-              {filteredWatches.map(watch => watch && (
-                <div key={watch._id} className="watch-card">
-                  <div className="watch-image">
-                    <img 
-                      src={watch.image_url || getImagePlaceholder()} 
-                      alt={`${watch.brand?.brand_name || 'Watch'} ${watch.model || ''}`}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = getImagePlaceholder();
-                      }}
-                    />
-                  </div>
-                  <div className="watch-info">
-                    <h3>{watch.brand?.brand_name || 'Watch'} {watch.model}</h3>
-                    <p className="watch-price">${watch.rental_day_price}/day</p>
-                    {watch.quantity <= 0 && (
-                      <span className="out-of-stock">Out of Stock</span>
-                    )}
-                    <button 
-                      className="view-details-btn"
-                      onClick={() => viewDetails(watch)}
-                    >
-                      View Details
-                    </button>
-                  </div>
-                </div>
-              ))}
+              {filteredWatches.map(
+                (watch) =>
+                  watch && (
+                    <div key={watch._id} className="watch-card">
+                      <div className="watch-image">
+                        <img
+                          src={watch.image_url || getImagePlaceholder()}
+                          alt={`${watch.brand?.brand_name || 'Watch'} ${watch.model || ''}`}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = getImagePlaceholder();
+                          }}
+                        />
+                      </div>
+                      <div className="watch-info">
+                        <h3>
+                          {watch.brand?.brand_name || 'Watch'} {watch.model}
+                        </h3>
+                        <p className="watch-price">
+                          ${watch.rental_day_price}/day
+                        </p>
+                        {watch.quantity <= 0 && (
+                          <span className="out-of-stock">Out of Stock</span>
+                        )}
+                        <button
+                          className="view-details-btn"
+                          onClick={() => viewDetails(watch)}
+                        >
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  )
+              )}
             </div>
           )}
         </div>
       </div>
-      
+
       {/* Watch details modal */}
       {selectedWatch && (
         <div className="watch-details-modal">
           <div className="modal-content">
-            <button 
+            <button
               className="close-modal"
               onClick={() => setSelectedWatch(null)}
             >
@@ -426,8 +465,8 @@ const WatchCatalog = () => {
             </button>
             <div className="watch-details">
               <div className="watch-details-image">
-                <img 
-                  src={selectedWatch.image_url || getImagePlaceholder()} 
+                <img
+                  src={selectedWatch.image_url || getImagePlaceholder()}
                   alt={`${selectedWatch.brand?.brand_name || 'Watch'} ${selectedWatch.model || ''}`}
                   onError={(e) => {
                     e.target.onerror = null;
@@ -436,24 +475,36 @@ const WatchCatalog = () => {
                 />
               </div>
               <div className="watch-details-info">
-                <h2>{selectedWatch.brand?.brand_name || 'Watch'} {selectedWatch.model}</h2>
-                <p><strong>Year:</strong> {selectedWatch.year}</p>
-                <p><strong>Condition:</strong> {selectedWatch.condition}</p>
-                <p><strong>Price:</strong> ${selectedWatch.rental_day_price}/day</p>
-                <p><strong>Available:</strong> {selectedWatch.quantity} {selectedWatch.quantity === 1 ? 'unit' : 'units'}</p>
-                
+                <h2>
+                  {selectedWatch.brand?.brand_name || 'Watch'}{' '}
+                  {selectedWatch.model}
+                </h2>
+                <p>
+                  <strong>Year:</strong> {selectedWatch.year}
+                </p>
+                <p>
+                  <strong>Condition:</strong> {selectedWatch.condition}
+                </p>
+                <p>
+                  <strong>Price:</strong> ${selectedWatch.rental_day_price}/day
+                </p>
+                <p>
+                  <strong>Available:</strong> {selectedWatch.quantity}{' '}
+                  {selectedWatch.quantity === 1 ? 'unit' : 'units'}
+                </p>
+
                 <div className="watch-actions">
-                  <button 
+                  <button
                     className="rent-btn"
                     onClick={() => handleRent(selectedWatch)}
                     disabled={selectedWatch.quantity < 1}
                   >
                     {selectedWatch.quantity < 1 ? 'Out of Stock' : 'Rent Now'}
                   </button>
-                  
+
                   {isAdmin && (
                     <div className="admin-actions">
-                      <button 
+                      <button
                         className="edit-btn"
                         onClick={() => {
                           setCurrentWatch(selectedWatch);
@@ -463,13 +514,21 @@ const WatchCatalog = () => {
                       >
                         Edit
                       </button>
-                      <button 
+                      <button
                         className="delete-btn"
                         onClick={async () => {
-                          if (window.confirm(`Are you sure you want to delete ${selectedWatch.brand?.brand_name || 'this watch'} ${selectedWatch.model}?`)) {
+                          if (
+                            window.confirm(
+                              `Are you sure you want to delete ${selectedWatch.brand?.brand_name || 'this watch'} ${selectedWatch.model}?`
+                            )
+                          ) {
                             try {
                               await api.watches.delete(selectedWatch._id);
-                              setWatches(watches.filter(w => w._id !== selectedWatch._id));
+                              setWatches(
+                                watches.filter(
+                                  (w) => w._id !== selectedWatch._id
+                                )
+                              );
                               setSelectedWatch(null);
                             } catch (err) {
                               console.error('Error deleting watch:', err);
@@ -488,7 +547,7 @@ const WatchCatalog = () => {
           </div>
         </div>
       )}
-      
+
       {/* Watch Modal for adding/editing */}
       {isModalOpen && (
         <WatchModal

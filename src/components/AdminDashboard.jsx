@@ -20,13 +20,13 @@ const AdminDashboard = () => {
   useEffect(() => {
     // Flag to prevent state updates if component unmounts during API call
     let isMounted = true;
-    
+
     const fetchData = async () => {
       if (!isMounted) return;
-      
+
       setIsLoading(true);
       setError(null);
-      
+
       // Set a timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
         if (isMounted && isLoading) {
@@ -35,15 +35,15 @@ const AdminDashboard = () => {
           setApiConnectionFailed(true);
         }
       }, 15000); // 15 second timeout
-      
+
       try {
         // Fetch both watches and brands in parallel
         const [watchesData, brandsData] = await Promise.all([
-          api.watches.getAll().catch(err => {
+          api.watches.getAll().catch((err) => {
             console.error('Error fetching watches:', err);
             throw err;
           }),
-          api.brands.getAll().catch(err => {
+          api.brands.getAll().catch((err) => {
             console.error('Error fetching brands:', err);
             throw err;
           }),
@@ -51,9 +51,9 @@ const AdminDashboard = () => {
 
         // Clear timeout as request succeeded
         clearTimeout(timeoutId);
-        
+
         if (!isMounted) return;
-        
+
         // Check if the data is valid
         if (!Array.isArray(watchesData) || !Array.isArray(brandsData)) {
           console.error('Invalid data format:', { watchesData, brandsData });
@@ -69,21 +69,23 @@ const AdminDashboard = () => {
         });
 
         // Ensure watches have populated brand information
-        const processedWatches = watchesData.map((watch) => {
-          if (!watch) return null;
-          
-          // If brand is just an ID string but we have the brand info
-          if (typeof watch.brand === 'string' && brandMap[watch.brand]) {
-            return {
-              ...watch,
-              brand: {
-                _id: watch.brand,
-                brand_name: brandMap[watch.brand].brand_name,
-              },
-            };
-          }
-          return watch;
-        }).filter(Boolean); // Remove null values
+        const processedWatches = watchesData
+          .map((watch) => {
+            if (!watch) return null;
+
+            // If brand is just an ID string but we have the brand info
+            if (typeof watch.brand === 'string' && brandMap[watch.brand]) {
+              return {
+                ...watch,
+                brand: {
+                  _id: watch.brand,
+                  brand_name: brandMap[watch.brand].brand_name,
+                },
+              };
+            }
+            return watch;
+          })
+          .filter(Boolean); // Remove null values
 
         if (isMounted) {
           setBrands(brandsData);
@@ -92,7 +94,7 @@ const AdminDashboard = () => {
         }
       } catch (err) {
         clearTimeout(timeoutId);
-        
+
         if (isMounted) {
           console.error('Error in fetchData:', err);
           setError(`Failed to fetch data: ${err.message || 'Unknown error'}`);
@@ -106,7 +108,7 @@ const AdminDashboard = () => {
     };
 
     fetchData();
-    
+
     // Cleanup function to prevent state updates after unmount
     return () => {
       isMounted = false;
@@ -119,10 +121,10 @@ const AdminDashboard = () => {
       setError('No watch data provided');
       return;
     }
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     // Set a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       if (isLoading) {
@@ -135,10 +137,10 @@ const AdminDashboard = () => {
       if (mode === 'add') {
         // Add new watch via API
         const newWatch = await api.watches.create(watchData);
-        
+
         // Clear timeout as request succeeded
         clearTimeout(timeoutId);
-        
+
         if (!newWatch || typeof newWatch !== 'object') {
           throw new Error('Invalid response when creating watch');
         }
@@ -162,10 +164,10 @@ const AdminDashboard = () => {
           currentWatch._id,
           watchData
         );
-        
+
         // Clear timeout as request succeeded
         clearTimeout(timeoutId);
-        
+
         if (!updatedWatch || typeof updatedWatch !== 'object') {
           throw new Error('Invalid response when updating watch');
         }
@@ -191,13 +193,13 @@ const AdminDashboard = () => {
         clearTimeout(timeoutId);
         throw new Error('Invalid mode or missing watch data');
       }
-      
+
       // Close modal after successful save
       setIsModalOpen(false);
       setCurrentWatch(null);
     } catch (err) {
       clearTimeout(timeoutId);
-      
+
       console.error('Error saving watch:', err);
       setError(
         `Failed to ${mode === 'add' ? 'create' : 'update'} watch: ${err.message || 'Unknown error'}`
@@ -211,7 +213,7 @@ const AdminDashboard = () => {
   // Handler for opening edit modal
   const handleEditWatch = (watch) => {
     if (!watch) return;
-    
+
     setCurrentWatch(watch);
     setIsModalOpen(true);
   };
@@ -219,7 +221,7 @@ const AdminDashboard = () => {
   // Handler for delete confirmation
   const handleDeleteClick = (watch) => {
     if (!watch) return;
-    
+
     setConfirmDelete(watch);
   };
 
@@ -229,10 +231,10 @@ const AdminDashboard = () => {
       setError('Invalid watch selected for deletion');
       return;
     }
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     // Set a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       if (isLoading) {
@@ -244,15 +246,15 @@ const AdminDashboard = () => {
     try {
       // Delete watch via API
       await api.watches.delete(confirmDelete._id);
-      
+
       // Clear timeout as request succeeded
       clearTimeout(timeoutId);
-      
+
       setWatches(watches.filter((watch) => watch._id !== confirmDelete._id));
       setConfirmDelete(null);
     } catch (err) {
       clearTimeout(timeoutId);
-      
+
       console.error('Error deleting watch:', err);
       setError(`Failed to delete watch: ${err.message || 'Unknown error'}`);
     } finally {
@@ -268,7 +270,7 @@ const AdminDashboard = () => {
   // Function to get brand name from a watch
   const getBrandName = (watch) => {
     if (!watch) return 'Unknown Brand';
-    
+
     // If brand is a populated object with brand_name
     if (
       watch.brand &&
@@ -300,9 +302,12 @@ const AdminDashboard = () => {
             <AlertCircle size={24} />
             <div>
               <h3>Connection Error</h3>
-              <p>{error || 'Failed to connect to the server. Please try again later.'}</p>
-              <button 
-                className="btn btn-primary" 
+              <p>
+                {error ||
+                  'Failed to connect to the server. Please try again later.'}
+              </p>
+              <button
+                className="btn btn-primary"
                 onClick={() => window.location.reload()}
               >
                 Retry Connection
