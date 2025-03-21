@@ -9,6 +9,7 @@ import './styles/App.css';
 import { BasePageLayout } from './pages/layouts/BasePageLayout';
 import { Register } from './pages/Register';
 import { Login } from './pages/Login';
+import { UserProfile } from './pages/UserProfile';
 import { useAuthData } from './hooks/useAuthData';
 import AdminDashboard from './components/AdminDashboard';
 
@@ -69,6 +70,16 @@ function App() {
           />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+
+          {/* User routes - protected */}
+          <Route
+            path="profile"
+            element={
+              <PrivateRoute>
+                <UserProfile />
+              </PrivateRoute>
+            }
+          />
 
           {/* Admin routes - now within BasePageLayout */}
           <Route
