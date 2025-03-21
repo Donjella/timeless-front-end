@@ -286,4 +286,223 @@ describe('WatchModal Component', () => {
         });
       });
 
+      // tests for form submission 
+
+      it('should call onSave with correct data when form is submitted', async () => {
+        const mockWatch = null; // Add mode
+        const expectedFormData = {
+          brand_id: 'brand1',
+          model: 'Submariner',
+          year: 2022,
+          rental_day_price: 50,
+          condition: 'New',
+          quantity: 2,
+          image_url: 'https://example.com/watch.jpg',
+        };
+        
+        validateImageUrl.mockReturnValue(true);
+        isImageUrlAccessible.mockResolvedValue(true);
+        
+        render(<WatchModal {...defaultProps} watch={mockWatch} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        // Fill out the form
+        const modelInput = screen.getByLabelText(/model/i);
+        fireEvent.change(modelInput, { target: { value: 'Submariner' } });
+        
+        const yearInput = screen.getByLabelText(/year/i);
+        fireEvent.change(yearInput, { target: { value: '2022' } });
+        
+        const priceInput = screen.getByLabelText(/price\/day/i);
+        fireEvent.change(priceInput, { target: { value: '50' } });
+        
+        const conditionSelect = screen.getByLabelText(/condition/i);
+        fireEvent.change(conditionSelect, { target: { value: 'New' } });
+        
+        const quantityInput = screen.getByLabelText(/quantity/i);
+        fireEvent.change(quantityInput, { target: { value: '2' } });
+        
+        const imageUrlInput = screen.getByLabelText(/image url/i);
+        fireEvent.change(imageUrlInput, { target: { value: 'https://example.com/watch.jpg' } });
+        
+        // Submit the form
+        const submitButton = screen.getByRole('button', { name: /add watch/i });
+        fireEvent.click(submitButton);
+        
+        // Check that onSave was called with correct data
+        await waitFor(() => {
+          expect(defaultProps.onSave).toHaveBeenCalledWith(
+            expect.objectContaining(expectedFormData),
+            'add'
+          );
+        });
+      });
+    
+      it('should call onSave with correct mode when editing', async () => {
+        const mockWatch = {
+          _id: 'watch1',
+          brand: { _id: 'brand1', brand_name: 'Rolex' },
+          model: 'Submariner',
+          year: 2020,
+          rental_day_price: 45,
+          condition: 'Good',
+          quantity: 3,
+          image_url: '',
+        };
+        
+        render(<WatchModal {...defaultProps} watch={mockWatch} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        // Update the price
+        const priceInput = screen.getByLabelText(/price\/day/i);
+        fireEvent.change(priceInput, { target: { value: '50' } });
+        
+        // Submit the form
+        const submitButton = screen.getByRole('button', { name: /update watch/i });
+        fireEvent.click(submitButton);
+        
+        // Check that onSave was called with correct data and mode
+        await waitFor(() => {
+          expect(defaultProps.onSave).toHaveBeenCalledWith(
+            expect.objectContaining({
+              brand_id: 'brand1',
+              rental_day_price: 50,
+            }),
+            'edit'
+          );
+        });
+      });
+    
+      it('should display error messages from API calls', async () => {
+        // Mock API error
+        const errorMessage = 'Failed to load brands';
+        api.brands.getAll.mockRejectedValue(new Error(errorMessage));
+        
+        render(<WatchModal {...defaultProps} />);
+        
+        // Error message should be displayed
+        await waitFor(() => {
+          expect(screen.getByText('Failed to load brands. Please try again.')).toBeInTheDocument();
+        });
+      });
+    
+      it('should validate required fields on submit', async () => {
+        render(<WatchModal {...defaultProps} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        // Clear the model field (required)
+        const modelInput = screen.getByLabelText(/model/i);
+        fireEvent.change(modelInput, { target: { value: '' } });
+        
+        // Submit the form
+        const submitButton = screen.getByRole('button', { name: /add watch/i });
+        fireEvent.click(submitButton);
+        
+        // Form should not have been submitted
+        expect(defaultProps.onSave).not.toHaveBeenCalled();
+      });
+    
+      it('should handle numeric inputs correctly', async () => {
+        render(<WatchModal {...defaultProps} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        // Enter negative values for numeric fields
+        const yearInput = screen.getByLabelText(/year/i);
+        fireEvent.change(yearInput, { target: { value: '-2000' } });
+        
+        const priceInput = screen.getByLabelText(/price\/day/i);
+        fireEvent.change(priceInput, { target: { value: '-10' } });
+        
+        const quantityInput = screen.getByLabelText(/quantity/i);
+        fireEvent.change(quantityInput, { target: { value: '-5' } });
+        
+        // HTML validation should prevent this, but we're checking the form processing
+        // For year, it should respect the min attribute
+        // For price and quantity, negative values are converted to numbers
+        
+        // Fill required model field
+        const modelInput = screen.getByLabelText(/model/i);
+        fireEvent.change(modelInput, { target: { value: 'Test Model' } });
+        
+        // Submit the form
+        const submitButton = screen.getByRole('button', { name: /add watch/i });
+        fireEvent.click(submitButton);
+        
+        // Check that onSave was called with correct numeric conversions
+        await waitFor(() => {
+          expect(defaultProps.onSave).toHaveBeenCalledWith(
+            expect.objectContaining({
+              year: -2000, // This would normally be prevented by min attribute
+              rental_day_price: -10,
+              quantity: -5,
+            }),
+            'add'
+          );
+        });
+      });
+    
+      it('should close modal when cancel button is clicked', async () => {
+        render(<WatchModal {...defaultProps} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        // Click the cancel button
+        const cancelButton = screen.getByRole('button', { name: /cancel/i });
+        fireEvent.click(cancelButton);
+        
+        // onClose should have been called
+        expect(defaultProps.onClose).toHaveBeenCalled();
+      });
+    
+      it('should close modal when X button is clicked', async () => {
+        render(<WatchModal {...defaultProps} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        // Click the close button (X)
+        const closeButton = screen.getByRole('button', { name: /×/i });
+        fireEvent.click(closeButton);
+        
+        // onClose should have been called
+        expect(defaultProps.onClose).toHaveBeenCalled();
+      });
+    
+      it('should show image preview when valid image URL is entered', async () => {
+        validateImageUrl.mockReturnValue(true);
+        isImageUrlAccessible.mockResolvedValue(true);
+        
+        render(<WatchModal {...defaultProps} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        // Enter a valid image URL
+        const imageUrlInput = screen.getByLabelText(/image url/i);
+        fireEvent.change(imageUrlInput, { target: { value: 'https://example.com/watch.jpg' } });
+        
+        // Image preview should be displayed
+        await waitFor(() => {
+          const previewImage = screen.getByAltText('Watch preview');
+          expect(previewImage).toBeInTheDocument();
+          expect(previewImage).toHaveAttribute('src', 'https://example.com/watch.jpg');
+        });
+      });
+
 });
