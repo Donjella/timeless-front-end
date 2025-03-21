@@ -3,10 +3,44 @@
 // Base URL for API requests
 const API_BASE_URL = 'https://timeless-back-end.onrender.com';
 
-// Helper function to get auth token from localStorage
+// Helper function to check if token is expired
+const isTokenExpired = (token) => {
+  if (!token) return true;
+  
+  try {
+    // Token has format: header.payload.signature
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    
+    const { exp } = JSON.parse(jsonPayload);
+    
+    // Check if expiration time is past current time
+    return exp * 1000 < Date.now();
+  } catch (e) {
+    console.error('Error checking token expiration:', e);
+    return true; // Assume expired on error
+  }
+};
+
+// Helper function to get auth token from localStorage with expiration check
 const getToken = () => {
   const auth = JSON.parse(localStorage.getItem('auth') || '{}');
-  return auth.token;
+  const token = auth.token;
+  
+  // If token is expired, clear it from storage
+  if (token && isTokenExpired(token)) {
+    console.warn('Token expired, clearing authentication');
+    localStorage.removeItem('auth');
+    return null;
+  }
+  
+  return token;
 };
 
 // Helper function to get user role from localStorage
@@ -41,6 +75,16 @@ const fetchWrapper = async (endpoint, options) => {
     // For 204 No Content responses
     if (response.status === 204) {
       return { success: true };
+    }
+
+    // Handle 401 errors specially
+    if (response.status === 401) {
+      // Token expired or invalid, clear auth
+      localStorage.removeItem('auth');
+      throw {
+        status: 401,
+        message: 'Your session has expired. Please log in again.',
+      };
     }
 
     const data = await response.json();
@@ -106,7 +150,8 @@ export const api = {
     },
 
     isAuthenticated: () => {
-      return !!getToken();
+      const token = getToken();
+      return !!token;
     },
   },
 
@@ -285,7 +330,7 @@ export const api = {
       }),
 
     getUserRentals: () =>
-      fetchWrapper('/api/rentals/user/me', {
+      fetchWrapper('/api/rentals/user', {
         method: 'GET',
         headers: createHeaders(),
       }),

@@ -1,14 +1,21 @@
+// src/utils/imageUtils.js
+
 /**
- * Validates an image URL with a more lenient approach
- * @param {string} url - Image URL to validate
- * @returns {boolean} - Whether the URL looks valid
+ * Get a fallback image placeholder
+ * @returns {string} - Static placeholder image data URI
+ */
+export const getImagePlaceholder = () => {
+  // Simple gray square with "Watch" text
+  return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3QgZmlsbD0iI2YwZjBmMCIgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiLz48dGV4dCBmaWxsPSIjODg4IiBmb250LWZhbWlseT0iQXJpYWwsU2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMTAwIiB5PSIxMDAiPldhdGNoPC90ZXh0Pjwvc3ZnPg==';
+};
+
+/**
+ * Validate an image URL (simple check)
+ * @param {string} url - The URL to check
+ * @returns {boolean} - Whether the URL appears valid
  */
 export const validateImageUrl = (url) => {
-  if (!url) return false;
-
-  // More permissive URL regex that allows various domain formats and paths
-  const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w]{2,}([\/\w\.-]*)*\/?$/i;
-  return urlRegex.test(url);
+  return !!url && typeof url === 'string' && url.trim().length > 0;
 };
 
 /**
@@ -34,28 +41,18 @@ export const isImageUrlAccessible = async (url) => {
 };
 
 /**
- * Get a fallback image placeholder
- * @returns {string} - Placeholder image URL or data URI
- */
-export const getImagePlaceholder = () => {
-  return 'https://via.placeholder.com/150?text=Watch+Image';
-};
-
-/**
- * Attempt to standardize image URL
- * @param {string} url - Original image URL
- * @returns {string} - Standardized URL
+ * Normalize an image URL by adding protocol if missing
+ * @param {string} url - Original URL
+ * @returns {string} - Normalized URL
  */
 export const normalizeImageUrl = (url) => {
   if (!url) return '';
-
-  // Trim whitespace
+  
   url = url.trim();
-
-  // Add protocol if missing
+  
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
     url = `https://${url}`;
   }
-
+  
   return url;
 };

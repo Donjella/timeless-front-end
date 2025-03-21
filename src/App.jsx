@@ -13,6 +13,7 @@ import { Login } from './pages/Login';
 import AdminDashboard from './components/AdminDashboard';
 import WatchCatalog from './components/WatchCatalog';
 import Checkout from './components/Checkout';
+import SimplifiedCheckout from './components/SimplifiedCheckout'; // Import the new component
 import UserProfile from './components/UserProfile';
 import UserRentals from './components/UserRentals';
 import { useAuthData } from './hooks/useAuthData';
@@ -111,11 +112,22 @@ function App() {
           <Route path="register" element={<Register />} />
 
           {/* User routes (protected) */}
+          {/* Regular checkout route */}
           <Route
             path="checkout"
             element={
               <ProtectedRoute>
                 <Checkout />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Simplified checkout route for rental payments */}
+          <Route
+            path="payment"
+            element={
+              <ProtectedRoute>
+                <SimplifiedCheckout />
               </ProtectedRoute>
             }
           />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Calendar,
   CreditCard,
@@ -17,6 +17,7 @@ import '../styles/checkout.css';
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { authData } = useAuthData();
   const [checkoutItems, setCheckoutItems] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -24,6 +25,7 @@ const Checkout = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [orderSummaryExpanded, setOrderSummaryExpanded] = useState(false);
+  const [directRentalMode, setDirectRentalMode] = useState(false);
 
   // Payment details state
   const [paymentMethod, setPaymentMethod] = useState('credit_card');
@@ -51,54 +53,119 @@ const Checkout = () => {
       return;
     }
 
-    // Get checkout items from sessionStorage
-    const storedItems = JSON.parse(
-      sessionStorage.getItem('checkoutItems') || '[]'
-    );
+    const fetchCheckoutData = async () => {
+      setIsLoading(true);
+      setError(null);
 
-    if (storedItems.length === 0) {
-      navigate('/cart');
-      return;
-    }
+      try {
+        // Check for rental ID in URL (direct payment for existing rental)
+        const urlParams = new URLSearchParams(location.search);
+        const rentalId = urlParams.get('rental');
 
-    // Initialize checkout items and rental dates
-    const initializedItems = storedItems.map((item) => {
-      const startDate = new Date().toISOString().split('T')[0];
-      const endDate = (() => {
-        const end = new Date();
-        end.setDate(end.getDate() + 7); // Default 7 days
-        return end.toISOString().split('T')[0];
-      })();
+        if (rentalId) {
+          // Set direct rental mode
+          setDirectRentalMode(true);
 
-      const rentalDays = calculateRentalDays(startDate, endDate);
+          // Fetch the specific rental for payment
+          const rental = await api.rentals.getById(rentalId);
 
-      return {
-        ...item,
-        rentalDays,
-        total: item.watch.rental_day_price * rentalDays,
-      };
-    });
+          if (!rental) {
+            throw new Error('Rental not found');
+          }
 
-    // Initialize rental dates
-    const initialRentalDates = initializedItems.map((item) => ({
-      watchId: item.watchId,
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: (() => {
-        const end = new Date();
-        end.setDate(end.getDate() + 7);
-        return end.toISOString().split('T')[0];
-      })(),
-    }));
+          // Check if rental is already paid
+          if (rental.isPaid) {
+            navigate('/account/rentals');
+            return;
+          }
 
-    setCheckoutItems(initializedItems);
-    setRentalDates(initialRentalDates);
+          // Format rental for checkout
+          const checkoutItem = {
+            watchId: rental.watch._id,
+            watch: rental.watch,
+            rentalDays: calculateRentalDays(
+              rental.rental_start_date,
+              rental.rental_end_date
+            ),
+            total: rental.total_rental_price,
+            rentalId: rental._id, // Store the existing rental ID
+          };
 
-    // Calculate total amount
-    const total = initializedItems.reduce((sum, item) => sum + item.total, 0);
-    setTotalAmount(total);
+          setCheckoutItems([checkoutItem]);
+          setTotalAmount(rental.total_rental_price);
 
-    setIsLoading(false);
-  }, [navigate, authData]);
+          // Set rental dates
+          setRentalDates([
+            {
+              watchId: rental.watch._id,
+              startDate: new Date(rental.rental_start_date)
+                .toISOString()
+                .split('T')[0],
+              endDate: new Date(rental.rental_end_date)
+                .toISOString()
+                .split('T')[0],
+            },
+          ]);
+        } else {
+          // Normal checkout flow from cart
+          const storedItems = JSON.parse(
+            sessionStorage.getItem('checkoutItems') || '[]'
+          );
+
+          if (storedItems.length === 0) {
+            navigate('/catalog'); // Navigate to catalog instead of cart
+            return;
+          }
+
+          // Initialize checkout items and rental dates
+          const initializedItems = storedItems.map((item) => {
+            const startDate = new Date().toISOString().split('T')[0];
+            const endDate = (() => {
+              const end = new Date();
+              end.setDate(end.getDate() + 7); // Default 7 days
+              return end.toISOString().split('T')[0];
+            })();
+
+            const rentalDays = calculateRentalDays(startDate, endDate);
+
+            return {
+              ...item,
+              rentalDays,
+              total: item.watch.rental_day_price * rentalDays,
+            };
+          });
+
+          // Initialize rental dates
+          const initialRentalDates = initializedItems.map((item) => ({
+            watchId: item.watchId,
+            startDate: new Date().toISOString().split('T')[0],
+            endDate: (() => {
+              const end = new Date();
+              end.setDate(end.getDate() + 7);
+              return end.toISOString().split('T')[0];
+            })(),
+          }));
+
+          setCheckoutItems(initializedItems);
+          setRentalDates(initialRentalDates);
+
+          // Calculate total amount
+          const total = initializedItems.reduce(
+            (sum, item) => sum + item.total,
+            0
+          );
+          setTotalAmount(total);
+        }
+      } catch (err) {
+        console.error('Error fetching checkout data:', err);
+        setError('Failed to load checkout information. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCheckoutData();
+  }, [navigate, location, authData]);
 
   // Calculate days between two dates
   const calculateRentalDays = (startDate, endDate) => {
@@ -111,6 +178,9 @@ const Checkout = () => {
 
   // Update rental dates for a specific item
   const updateRentalDates = (index, field, value) => {
+    // Skip updates if in direct rental mode
+    if (directRentalMode) return;
+
     const updatedDates = [...rentalDates];
     updatedDates[index] = {
       ...updatedDates[index],
@@ -267,30 +337,52 @@ const Checkout = () => {
         const item = checkoutItems[i];
         const rentalDate = rentalDates[i];
 
-        const rentalData = {
-          watch_id: item.watchId,
-          rental_days: item.rentalDays,
-          rental_start_date: new Date(rentalDate.startDate).toISOString(),
-          rental_end_date: new Date(rentalDate.endDate).toISOString(),
-          collection_mode: 'Pickup',
-        };
+        // Check if this is an existing rental (from direct payment flow)
+        if (item.rentalId) {
+          // Process payment for existing rental
+          const paymentData = {
+            rental_id: item.rentalId,
+            amount: item.total,
+            payment_method:
+              paymentMethod === 'credit_card' ? 'Credit Card' : 'PayPal',
+          };
 
-        const rental = await api.rentals.create(rentalData);
+          const payment = await api.payments.create(paymentData);
 
-        // Process payment for this rental
-        const paymentData = {
-          rental_id: rental._id,
-          amount: item.total,
-          payment_method:
-            paymentMethod === 'credit_card' ? 'Credit Card' : 'PayPal',
-        };
+          // Fetch the updated rental after payment
+          const updatedRental = await api.rentals.getById(item.rentalId);
 
-        const payment = await api.payments.create(paymentData);
+          rentals.push({
+            rental: updatedRental,
+            payment,
+          });
+        } else {
+          // Create a new rental (original flow)
+          const rentalData = {
+            watch_id: item.watchId,
+            rental_days: item.rentalDays,
+            rental_start_date: new Date(rentalDate.startDate).toISOString(),
+            rental_end_date: new Date(rentalDate.endDate).toISOString(),
+            collection_mode: 'Pickup',
+          };
 
-        rentals.push({
-          rental,
-          payment,
-        });
+          const rental = await api.rentals.create(rentalData);
+
+          // Process payment for this rental
+          const paymentData = {
+            rental_id: rental._id,
+            amount: item.total,
+            payment_method:
+              paymentMethod === 'credit_card' ? 'Credit Card' : 'PayPal',
+          };
+
+          const payment = await api.payments.create(paymentData);
+
+          rentals.push({
+            rental,
+            payment,
+          });
+        }
       }
 
       // Clear cart after successful order
@@ -357,39 +449,55 @@ const Checkout = () => {
           </p>
 
           <div className="rental-dates-selector">
-            <div className="date-input-group">
-              <label>Start Date:</label>
-              <input
-                type="date"
-                value={rentalDate.startDate}
-                onChange={(e) =>
-                  updateRentalDates(index, 'startDate', e.target.value)
-                }
-                min={new Date().toISOString().split('T')[0]}
-                max={(() => {
-                  const maxDate = new Date();
-                  maxDate.setMonth(maxDate.getMonth() + 3);
-                  return maxDate.toISOString().split('T')[0];
-                })()}
-              />
-            </div>
+            {directRentalMode ? (
+              // Display dates but don't allow editing for direct rentals
+              <div className="date-display">
+                <p>
+                  <strong>Start Date:</strong>{' '}
+                  {formatDate(rentalDate.startDate)}
+                </p>
+                <p>
+                  <strong>End Date:</strong> {formatDate(rentalDate.endDate)}
+                </p>
+              </div>
+            ) : (
+              // Allow date editing for regular checkout
+              <>
+                <div className="date-input-group">
+                  <label>Start Date:</label>
+                  <input
+                    type="date"
+                    value={rentalDate.startDate}
+                    onChange={(e) =>
+                      updateRentalDates(index, 'startDate', e.target.value)
+                    }
+                    min={new Date().toISOString().split('T')[0]}
+                    max={(() => {
+                      const maxDate = new Date();
+                      maxDate.setMonth(maxDate.getMonth() + 3);
+                      return maxDate.toISOString().split('T')[0];
+                    })()}
+                  />
+                </div>
 
-            <div className="date-input-group">
-              <label>End Date:</label>
-              <input
-                type="date"
-                value={rentalDate.endDate}
-                onChange={(e) =>
-                  updateRentalDates(index, 'endDate', e.target.value)
-                }
-                min={rentalDate.startDate}
-                max={(() => {
-                  const maxDate = new Date(rentalDate.startDate);
-                  maxDate.setMonth(maxDate.getMonth() + 3);
-                  return maxDate.toISOString().split('T')[0];
-                })()}
-              />
-            </div>
+                <div className="date-input-group">
+                  <label>End Date:</label>
+                  <input
+                    type="date"
+                    value={rentalDate.endDate}
+                    onChange={(e) =>
+                      updateRentalDates(index, 'endDate', e.target.value)
+                    }
+                    min={rentalDate.startDate}
+                    max={(() => {
+                      const maxDate = new Date(rentalDate.startDate);
+                      maxDate.setMonth(maxDate.getMonth() + 3);
+                      return maxDate.toISOString().split('T')[0];
+                    })()}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <p className="summary-item-rental">
@@ -505,7 +613,7 @@ const Checkout = () => {
   return (
     <div className="checkout-page">
       <div className="checkout-container">
-        <h1>Checkout</h1>
+        <h1>{directRentalMode ? 'Complete Payment' : 'Checkout'}</h1>
 
         {error && (
           <div className="error-message">

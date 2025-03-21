@@ -36,35 +36,57 @@ const UserRentals = () => {
     const fetchUserData = async () => {
       setIsLoading(true);
       setError(null);
-
       try {
-        // In a real app, we would have separate endpoints for active, past, and all rentals
-        // For this prototype, we'll fetch all and filter on the client side
-        const [rentalsData, paymentsData] = await Promise.all([
-          api.rentals.getUserRentals(),
-          api.payments.getUserPayments(),
-        ]);
-
+        // Check if authentication is valid
+        if (!api.auth.isAuthenticated()) {
+          // Token expired or missing, redirect to login
+          navigate('/login?redirect=/account/rentals&message=expired');
+          return;
+        }
+        // Try to get rentals, handle 401 errors appropriately
+        let rentalsData = [];
+        try {
+          rentalsData = await api.rentals.getUserRentals();
+        } catch (err) {
+          if (err.status === 401) {
+            // Unauthorized - token likely expired
+            localStorage.removeItem('auth');
+            navigate('/login?redirect=/account/rentals&message=expired');
+            return;
+          }
+          console.error('Error fetching rentals:', err);
+          // Continue with empty rentals rather than failing completely
+        }
+        // Try to get payments, handle 401 errors appropriately
+        let paymentsData = [];
+        try {
+          paymentsData = await api.payments.getUserPayments();
+        } catch (err) {
+          if (err.status === 401) {
+            // Unauthorized - token likely expired
+            localStorage.removeItem('auth');
+            navigate('/login?redirect=/account/rentals&message=expired');
+            return;
+          }
+          console.error('Error fetching payments:', err);
+          // Continue with empty payments rather than failing completely
+        }
         // Create a map of payment info by rental ID
         const paymentMap = {};
         paymentsData.forEach((payment) => {
           if (!payment || !payment.rental) return;
-
           const rentalId =
             typeof payment.rental === 'string'
               ? payment.rental
               : payment.rental._id;
-
           if (rentalId) {
             paymentMap[rentalId] = payment;
           }
         });
-
         // Enhance rentals with payment info
         const processedRentals = rentalsData
           .map((rental) => {
             if (!rental) return null;
-
             const payment = paymentMap[rental._id];
             return {
               ...rental,
@@ -73,7 +95,6 @@ const UserRentals = () => {
             };
           })
           .filter(Boolean);
-
         setRentals(processedRentals);
         setPayments(paymentsData);
       } catch (err) {
@@ -243,12 +264,20 @@ const UserRentals = () => {
                   className="rental-summary"
                   onClick={() => toggleRentalDetails(rental._id)}
                 >
+                  {/* Replace the existing rental-image div with this */}
                   <div className="rental-image">
                     <img
-                      src={rental.watch?.image_url || getImagePlaceholder()}
+                      src={
+                        rental.watch && rental.watch.image_url
+                          ? rental.watch.image_url
+                          : getImagePlaceholder()
+                      }
                       alt={rental.watch?.model || 'Watch'}
                       onError={(e) => {
+                        console.log("Image failed to load:", rental.watch?.image_url);
+                        // If the image fails to load, set onError to null to prevent infinite loop
                         e.target.onerror = null;
+                        // Use the data URI placeholder instead of trying to load another image
                         e.target.src = getImagePlaceholder();
                       }}
                     />
@@ -388,7 +417,7 @@ const UserRentals = () => {
                         <button
                           className="action-btn pay-btn"
                           onClick={() =>
-                            navigate(`/checkout?rental=${rental._id}`)
+                            navigate(`/payment?rental=${rental._id}`)
                           }
                         >
                           <CreditCard size={16} />
