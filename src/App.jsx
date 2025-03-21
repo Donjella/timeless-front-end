@@ -6,7 +6,7 @@ import {
   Route,
   Navigate,
 } from 'react-router-dom';
-import './styles/App.css';
+import './styles/app.css';
 import { BasePageLayout } from './pages/layouts/BasePageLayout';
 import { Register } from './pages/Register';
 import { Login } from './pages/Login';
