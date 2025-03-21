@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { api } from '../utils/api';
 import { Upload, X } from 'lucide-react';
 import {
@@ -60,7 +61,7 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
     if (isOpen) {
       fetchBrands();
     }
-  }, [isOpen]);
+  }, [isOpen, formData.brand_id]);
 
   // Reset or populate form when watch or modal changes
   useEffect(() => {
@@ -437,8 +438,8 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
             </div>
             {imageError && <p className="error-text">{imageError}</p>}
             <p className="help-text">
-              Enter a URL for the watch image. Ensure it's a direct link to an
-              image.
+              Enter a URL for the watch image. Ensure it&apos;s a direct link to
+              an image.
             </p>
           </div>
 
@@ -463,6 +464,14 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
       </div>
     </div>
   );
+};
+
+// Add PropTypes validation
+WatchModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  watch: PropTypes.object,
+  onSave: PropTypes.func.isRequired,
 };
 
 export default WatchModal;

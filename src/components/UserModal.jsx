@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { X } from 'lucide-react';
 import { api } from '../utils/api';
 
@@ -170,6 +171,20 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
       </div>
     </div>
   );
+};
+
+// Add PropTypes validation
+UserModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  user: PropTypes.shape({
+    _id: PropTypes.string,
+    name: PropTypes.string,
+    email: PropTypes.string,
+    phone: PropTypes.string,
+    role: PropTypes.string,
+  }),
 };
 
 export default UserModal;

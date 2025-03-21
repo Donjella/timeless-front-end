@@ -57,7 +57,7 @@ const WatchCatalog = () => {
 
       // Set a timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
-        if (isMounted && loading) {
+        if (isMounted) {
           setError('Request timed out. The server may be unavailable.');
           setLoading(false);
           setApiConnectionFailed(true);
@@ -132,7 +132,7 @@ const WatchCatalog = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, []); // Empty dependency array - only run on mount
 
   // Handle watch creation or update (for admin)
   const handleSaveWatch = async (watchData, mode) => {
@@ -146,10 +146,8 @@ const WatchCatalog = () => {
 
     // Set a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
-      if (loading) {
-        setError('Request timed out. The server may be unavailable.');
-        setLoading(false);
-      }
+      setError('Request timed out. The server may be unavailable.');
+      setLoading(false);
     }, 10000); // 10 second timeout
 
     try {

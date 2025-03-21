@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../styles/admin-dashboard.css';
 import WatchModal from './WatchModal';
 import UserModal from './UserModal';
@@ -22,6 +22,9 @@ const AdminDashboard = () => {
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
+  // Create a ref for the search input
+  const searchInputRef = useRef(null);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -32,7 +35,7 @@ const AdminDashboard = () => {
       setError(null);
 
       const timeoutId = setTimeout(() => {
-        if (isMounted && isLoading) {
+        if (isMounted) {
           setError('Request timed out. The server may be unavailable.');
           setIsLoading(false);
           setApiConnectionFailed(true);
@@ -122,7 +125,17 @@ const AdminDashboard = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, []); // Empty dependency array to run only once on mount
+
+  // Focus the search input when switching to the users tab
+  useEffect(() => {
+    if (activeTab === 'users' && searchInputRef.current) {
+      // Use a slight delay to ensure the DOM has updated
+      setTimeout(() => {
+        searchInputRef.current.focus();
+      }, 100);
+    }
+  }, [activeTab]);
 
   const handleSaveWatch = async (watchData, mode) => {
     if (!watchData) {
@@ -134,10 +147,8 @@ const AdminDashboard = () => {
     setError(null);
 
     const timeoutId = setTimeout(() => {
-      if (isLoading) {
-        setError('Request timed out. The server may be unavailable.');
-        setIsLoading(false);
-      }
+      setError('Request timed out. The server may be unavailable.');
+      setIsLoading(false);
     }, 10000);
 
     try {
@@ -475,7 +486,7 @@ const AdminDashboard = () => {
                   className="search-input"
                   value={searchEmail}
                   onChange={(e) => setSearchEmail(e.target.value)}
-                  autoFocus
+                  ref={searchInputRef}
                 />
                 <button
                   className="btn btn-primary ml-2"

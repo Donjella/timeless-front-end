@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Calendar,
   Clock,
   AlertCircle,
   X,
@@ -19,7 +18,6 @@ const UserRentals = () => {
   const navigate = useNavigate();
   const { authData } = useAuthData();
   const [rentals, setRentals] = useState([]);
-  const [payments, setPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedRental, setExpandedRental] = useState(null);
@@ -96,7 +94,6 @@ const UserRentals = () => {
           })
           .filter(Boolean);
         setRentals(processedRentals);
-        setPayments(paymentsData);
       } catch (err) {
         console.error('Error fetching user rentals:', err);
         setError('Failed to load your rental history. Please try again later.');
@@ -245,7 +242,7 @@ const UserRentals = () => {
               </>
             ) : (
               <>
-                <h3>You haven't rented any watches yet</h3>
+                <h3>You haven&apos;t rented any watches yet</h3>
                 <p>Browse our collection and rent a luxury watch today!</p>
                 <button
                   className="browse-btn"
@@ -263,8 +260,14 @@ const UserRentals = () => {
                 <div
                   className="rental-summary"
                   onClick={() => toggleRentalDetails(rental._id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      toggleRentalDetails(rental._id);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
                 >
-                  {/* Replace the existing rental-image div with this */}
                   <div className="rental-image">
                     <img
                       src={
@@ -343,34 +346,47 @@ const UserRentals = () => {
                       <h4>Rental Details</h4>
                       <div className="details-grid">
                         <div className="detail-item">
-                          <label>Rental ID</label>
-                          <span>{rental._id}</span>
+                          <span id={`rental-id-${rental._id}`}>Rental ID</span>
+                          <span aria-labelledby={`rental-id-${rental._id}`}>
+                            {rental._id}
+                          </span>
                         </div>
                         <div className="detail-item">
-                          <label>Start Date</label>
-                          <span>{formatDate(rental.rental_start_date)}</span>
+                          <span id={`start-date-${rental._id}`}>
+                            Start Date
+                          </span>
+                          <span aria-labelledby={`start-date-${rental._id}`}>
+                            {formatDate(rental.rental_start_date)}
+                          </span>
                         </div>
                         <div className="detail-item">
-                          <label>End Date</label>
-                          <span>{formatDate(rental.rental_end_date)}</span>
+                          <span id={`end-date-${rental._id}`}>End Date</span>
+                          <span aria-labelledby={`end-date-${rental._id}`}>
+                            {formatDate(rental.rental_end_date)}
+                          </span>
                         </div>
                         <div className="detail-item">
-                          <label>Collection Method</label>
-                          <span>{rental.collection_mode}</span>
+                          <span id={`collection-${rental._id}`}>
+                            Collection Method
+                          </span>
+                          <span aria-labelledby={`collection-${rental._id}`}>
+                            {rental.collection_mode}
+                          </span>
                         </div>
                         <div className="detail-item">
-                          <label>Rental Status</label>
+                          <span id={`status-${rental._id}`}>Rental Status</span>
                           <span
                             className={getStatusBadgeClass(
                               rental.rental_status
                             )}
+                            aria-labelledby={`status-${rental._id}`}
                           >
                             {rental.rental_status}
                           </span>
                         </div>
                         <div className="detail-item">
-                          <label>Total Price</label>
-                          <span>
+                          <span id={`price-${rental._id}`}>Total Price</span>
+                          <span aria-labelledby={`price-${rental._id}`}>
                             {formatCurrency(rental.total_rental_price)}
                           </span>
                         </div>
@@ -382,32 +398,47 @@ const UserRentals = () => {
                         <h4>Payment Information</h4>
                         <div className="details-grid">
                           <div className="detail-item">
-                            <label>Payment Status</label>
+                            <span id={`payment-status-${rental._id}`}>
+                              Payment Status
+                            </span>
                             <span
                               className={`payment-badge ${rental.payment.payment_status === 'Completed' ? 'payment-paid' : 'payment-pending'}`}
+                              aria-labelledby={`payment-status-${rental._id}`}
                             >
                               {rental.payment.payment_status}
                             </span>
                           </div>
                           <div className="detail-item">
-                            <label>Amount Paid</label>
-                            <span>{formatCurrency(rental.payment.amount)}</span>
+                            <span id={`amount-${rental._id}`}>Amount Paid</span>
+                            <span aria-labelledby={`amount-${rental._id}`}>
+                              {formatCurrency(rental.payment.amount)}
+                            </span>
                           </div>
                           <div className="detail-item">
-                            <label>Payment Method</label>
-                            <span>{rental.payment.payment_method}</span>
+                            <span id={`method-${rental._id}`}>
+                              Payment Method
+                            </span>
+                            <span aria-labelledby={`method-${rental._id}`}>
+                              {rental.payment.payment_method}
+                            </span>
                           </div>
                           <div className="detail-item">
-                            <label>Payment Date</label>
-                            <span>
+                            <span id={`payment-date-${rental._id}`}>
+                              Payment Date
+                            </span>
+                            <span
+                              aria-labelledby={`payment-date-${rental._id}`}
+                            >
                               {rental.payment.payment_date
                                 ? formatDate(rental.payment.payment_date)
                                 : 'N/A'}
                             </span>
                           </div>
                           <div className="detail-item">
-                            <label>Transaction ID</label>
-                            <span>
+                            <span id={`transaction-${rental._id}`}>
+                              Transaction ID
+                            </span>
+                            <span aria-labelledby={`transaction-${rental._id}`}>
                               {rental.payment.transaction_id || 'N/A'}
                             </span>
                           </div>

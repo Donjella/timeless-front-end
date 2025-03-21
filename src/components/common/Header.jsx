@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthData } from '../../hooks/useAuthData';
-import { User, Watch } from 'lucide-react';
+import { User } from 'lucide-react';
 import '../../styles/header.css';
 
 export function Header() {

@@ -81,8 +81,9 @@ export function Register() {
       setIsSubmitting(true);
 
       try {
-        // Remove confirmPassword as it's not needed in the API
-        const { confirmPassword, ...registrationData } = formData;
+        // confirmPassword not needed in the API
+        const { confirmPassword: _confirmPassword, ...registrationData } =
+          formData;
 
         // Use our API utility to register
         const userData = await api.auth.register(registrationData);

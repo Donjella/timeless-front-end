@@ -111,20 +111,34 @@ const UserProfile = () => {
               </div>
               <div className="profile-grid">
                 <div className="profile-field">
-                  <label>First Name</label>
-                  <div className="field-value">{profileData.first_name}</div>
+                  <span id="first-name-label">First Name</span>
+                  <div
+                    className="field-value"
+                    aria-labelledby="first-name-label"
+                  >
+                    {profileData.first_name}
+                  </div>
                 </div>
                 <div className="profile-field">
-                  <label>Last Name</label>
-                  <div className="field-value">{profileData.last_name}</div>
+                  <span id="last-name-label">Last Name</span>
+                  <div
+                    className="field-value"
+                    aria-labelledby="last-name-label"
+                  >
+                    {profileData.last_name}
+                  </div>
                 </div>
                 <div className="profile-field">
-                  <label>Email</label>
-                  <div className="field-value">{profileData.email}</div>
+                  <span id="email-label">Email</span>
+                  <div className="field-value" aria-labelledby="email-label">
+                    {profileData.email}
+                  </div>
                 </div>
                 <div className="profile-field">
-                  <label>Phone</label>
-                  <div className="field-value">{profileData.phone_number}</div>
+                  <span id="phone-label">Phone</span>
+                  <div className="field-value" aria-labelledby="phone-label">
+                    {profileData.phone_number}
+                  </div>
                 </div>
               </div>
             </div>
@@ -144,27 +158,33 @@ const UserProfile = () => {
               </div>
               <div className="address-fields">
                 <div className="profile-field">
-                  <label>Street Address</label>
-                  <div className="field-value">
+                  <span id="street-address-label">Street Address</span>
+                  <div
+                    className="field-value"
+                    aria-labelledby="street-address-label"
+                  >
                     {profileData.address?.street_address || 'Not provided'}
                   </div>
                 </div>
                 <div className="profile-field">
-                  <label>Suburb</label>
-                  <div className="field-value">
+                  <span id="suburb-label">Suburb</span>
+                  <div className="field-value" aria-labelledby="suburb-label">
                     {profileData.address?.suburb || 'Not provided'}
                   </div>
                 </div>
                 <div className="address-grid">
                   <div className="profile-field">
-                    <label>State</label>
-                    <div className="field-value">
+                    <span id="state-label">State</span>
+                    <div className="field-value" aria-labelledby="state-label">
                       {profileData.address?.state || 'Not provided'}
                     </div>
                   </div>
                   <div className="profile-field">
-                    <label>Postcode</label>
-                    <div className="field-value">
+                    <span id="postcode-label">Postcode</span>
+                    <div
+                      className="field-value"
+                      aria-labelledby="postcode-label"
+                    >
                       {profileData.address?.postcode || 'Not provided'}
                     </div>
                   </div>
@@ -188,8 +208,8 @@ const UserProfile = () => {
               <div className="rental-summary-content">
                 {/* This will be a simplified version of the rentals list */}
                 <p>
-                  Click "View All" to see your complete rental history and
-                  manage your rentals.
+                  Click &quot;View All&quot; to see your complete rental history
+                  and manage your rentals.
                 </p>
                 <button
                   className="browse-watches-button"

@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   BrowserRouter as Router,
   Routes,
@@ -18,8 +19,10 @@ import EditProfile from './components/EditProfile';
 import About from './pages/About';
 import HomePage from './pages/Home';
 import { useAuthData } from './hooks/useAuthData';
+import { AuthProvider } from '/src/contexts/AuthProvider.jsx';
 
-function App() {
+// Create an inner component that uses the auth context
+function AppRoutes() {
   const { authData } = useAuthData();
 
   // Check if user is an admin
@@ -39,6 +42,10 @@ function App() {
     return children;
   };
 
+  AdminRoute.propTypes = {
+    children: PropTypes.node.isRequired,
+  };
+
   // Regular user protected route
   const ProtectedRoute = ({ children }) => {
     if (!authData.isAuthenticated) {
@@ -46,6 +53,10 @@ function App() {
     }
 
     return children;
+  };
+
+  ProtectedRoute.propTypes = {
+    children: PropTypes.node.isRequired,
   };
 
   return (
@@ -60,7 +71,6 @@ function App() {
           <Route path="register" element={<Register />} />
 
           {/* User routes (protected) */}
-          {/* Regular checkout route */}
           <Route
             path="checkout"
             element={
@@ -69,8 +79,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* Simplified checkout route for rental payments */}
           <Route
             path="payment"
             element={
@@ -114,6 +122,15 @@ function App() {
         </Route>
       </Routes>
     </Router>
+  );
+}
+
+// Main App component that provides the AuthContext
+function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
   );
 }
 

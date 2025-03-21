@@ -9,10 +9,11 @@ const About = () => {
       <section>
         <h2>Our Story</h2>
         <p>
-          Founded in 2023, Timeless was born from a passion for luxury watches
-          and the belief that extraordinary timepieces should be accessible to
-          everyone. We recognized that many watch enthusiasts dream of
-          experiencing premium watches without the hefty price tag of ownership.
+          Founded in 2025 by Brendon and Stephen, Timeless was born from a
+          passion for luxury watches and the belief that extraordinary
+          timepieces should be accessible to everyone. We recognized that many
+          watch enthusiasts dream of experiencing premium watches without the
+          hefty price tag of ownership.
         </p>
       </section>
 
@@ -40,10 +41,10 @@ const About = () => {
         <h2>Our Commitment</h2>
         <p>
           We are committed to providing an unparalleled service that combines
-          luxury, convenience, and affordability. Whether you're attending a
-          special event, want to try before you buy, or simply love experiencing
-          different timepieces, Timeless is your premier watch rental
-          destination.
+          luxury, convenience, and affordability. Whether you&apos;re attending
+          a special event, want to try before you buy, or simply love
+          experiencing different timepieces, Timeless is your premier watch
+          rental destination.
         </p>
       </section>
     </div>
