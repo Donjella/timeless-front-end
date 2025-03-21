@@ -16,7 +16,7 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [apiConnectionFailed, setApiConnectionFailed] = useState(false);
-  
+
   const [searchEmail, setSearchEmail] = useState('');
   const [searchedUser, setSearchedUser] = useState(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -37,7 +37,7 @@ const AdminDashboard = () => {
           setIsLoading(false);
           setApiConnectionFailed(true);
         }
-      }, 15000); 
+      }, 15000);
 
       try {
         const [watchesData, brandsData, usersData] = await Promise.all([
@@ -59,8 +59,16 @@ const AdminDashboard = () => {
 
         if (!isMounted) return;
 
-        if (!Array.isArray(watchesData) || !Array.isArray(brandsData) || !Array.isArray(usersData)) {
-          console.error('Invalid data format:', { watchesData, brandsData, usersData });
+        if (
+          !Array.isArray(watchesData) ||
+          !Array.isArray(brandsData) ||
+          !Array.isArray(usersData)
+        ) {
+          console.error('Invalid data format:', {
+            watchesData,
+            brandsData,
+            usersData,
+          });
           throw new Error('Invalid data format received from server');
         }
 
@@ -86,7 +94,7 @@ const AdminDashboard = () => {
             }
             return watch;
           })
-          .filter(Boolean); 
+          .filter(Boolean);
 
         if (isMounted) {
           setBrands(brandsData);
@@ -213,16 +221,16 @@ const AdminDashboard = () => {
       setError('Please enter an email address');
       return;
     }
-  
+
     setIsLoading(true);
     setError(null);
     setSearchedUser(null);
-  
+
     try {
       const foundUser = users.find(
         (user) => user.email.toLowerCase() === searchEmail.toLowerCase().trim()
       );
-  
+
       if (foundUser) {
         setSearchedUser(foundUser);
       } else {
@@ -300,7 +308,7 @@ const AdminDashboard = () => {
     setCurrentUser(user);
     setIsUserModalOpen(true);
   };
-  
+
   const handleSaveUser = async (userData, mode) => {
     if (!userData) {
       setError('No user data provided');
@@ -316,9 +324,11 @@ const AdminDashboard = () => {
         setUsers([...users, userData]);
       } else if (mode === 'edit' && currentUser) {
         await api.users.update(currentUser._id, userData);
-        setUsers(users.map((user) => 
-          user._id === currentUser._id ? { ...user, ...userData } : user
-        ));
+        setUsers(
+          users.map((user) =>
+            user._id === currentUser._id ? { ...user, ...userData } : user
+          )
+        );
       } else {
         throw new Error('Invalid mode or missing user data');
       }
@@ -467,7 +477,7 @@ const AdminDashboard = () => {
                   onChange={(e) => setSearchEmail(e.target.value)}
                   autoFocus
                 />
-                <button 
+                <button
                   className="btn btn-primary ml-2"
                   onClick={handleSearchUser}
                   disabled={isLoading}
@@ -516,7 +526,7 @@ const AdminDashboard = () => {
                       <td>{searchedUser.email}</td>
                       <td>{searchedUser.phone_number || 'N/A'}</td>
                       <td className="actions">
-                        <button 
+                        <button
                           className="btn-icon btn-edit"
                           onClick={() => handleEditUser(searchedUser)}
                           disabled={isLoading}
@@ -546,7 +556,7 @@ const AdminDashboard = () => {
         return null;
     }
   };
-  
+
   return (
     <div className="admin-dashboard">
       <div className="dashboard-container">
@@ -573,7 +583,7 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
-      
+
       {isWatchModalOpen && (
         <WatchModal
           isOpen={isWatchModalOpen}
@@ -585,7 +595,7 @@ const AdminDashboard = () => {
           onSave={handleSaveWatch}
         />
       )}
-      
+
       {isUserModalOpen && (
         <UserModal
           isOpen={isUserModalOpen}
@@ -597,7 +607,7 @@ const AdminDashboard = () => {
           onSave={handleSaveUser}
         />
       )}
-      
+
       {confirmDelete && (
         <div className="modal-overlay">
           <div className="modal-container confirmation-modal">
@@ -609,7 +619,8 @@ const AdminDashboard = () => {
             </div>
             <div className="modal-content">
               <p>
-                Are you sure you want to delete {confirmDelete.name || confirmDelete.model}?
+                Are you sure you want to delete{' '}
+                {confirmDelete.name || confirmDelete.model}?
               </p>
               <p>This action cannot be undone.</p>
             </div>
@@ -621,7 +632,7 @@ const AdminDashboard = () => {
                 Cancel
               </button>
               <button className="btn btn-danger" onClick={handleConfirmDelete}>
-                Delete 
+                Delete
               </button>
             </div>
           </div>

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/watch-modal.css';
 import { api } from '../utils/api';
 import { Upload, X } from 'lucide-react';
 import {
