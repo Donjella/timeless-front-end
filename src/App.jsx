@@ -4,7 +4,6 @@ import {
   Routes,
   Route,
   Navigate,
-  Link,
 } from 'react-router-dom';
 import './styles/App.css';
 import { BasePageLayout } from './pages/layouts/BasePageLayout';
@@ -16,6 +15,8 @@ import Checkout from './components/Checkout';
 import SimplifiedCheckout from './components/SimplifiedCheckout';
 import UserProfile from './components/UserProfile';
 import EditProfile from './components/EditProfile';
+import About from './pages/About';
+import HomePage from './pages/Home';  
 import { useAuthData } from './hooks/useAuthData';
 
 function App() {
@@ -47,58 +48,6 @@ function App() {
     return children;
   };
 
-  // Simple placeholder for HomePage
-  const HomePage = () => {
-    return (
-      <div className="home-content">
-        <h1>Welcome to Timeless</h1>
-        <p className="tagline">Premium luxury watches for any occasion</p>
-        <div className="home-cta">
-          <Link to="/catalog" className="btn">
-            Browse Our Collection
-          </Link>
-        </div>
-      </div>
-    );
-  };
-
-  // Placeholder for About and Contact pages
-  const AboutPage = () => (
-    <div className="page-content">
-      <h1>About Timeless</h1>
-      <p>
-        We are a luxury watch rental service providing premium timepieces for
-        any occasion.
-      </p>
-      <p>
-        Founded in 2023, Timeless has quickly become the go-to destination for
-        watch enthusiasts who want to experience the finest watches without the
-        commitment of ownership.
-      </p>
-    </div>
-  );
-
-  const ContactPage = () => (
-    <div className="page-content">
-      <h1>Contact Us</h1>
-      <p>
-        We'd love to hear from you! Please contact us using the information
-        below:
-      </p>
-      <div className="contact-info">
-        <p>
-          <strong>Email:</strong> info@timeless-watches.com
-        </p>
-        <p>
-          <strong>Phone:</strong> (02) 1234 5678
-        </p>
-        <p>
-          <strong>Address:</strong> 123 Watch Lane, Sydney, NSW 2000
-        </p>
-      </div>
-    </div>
-  );
-
   return (
     <Router>
       <Routes>
@@ -106,8 +55,7 @@ function App() {
           {/* Public routes */}
           <Route index element={<HomePage />} />
           <Route path="catalog" element={<WatchCatalog />} />
-          <Route path="about" element={<AboutPage />} />
-          <Route path="contact" element={<ContactPage />} />
+          <Route path="about" element={<About />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
 
