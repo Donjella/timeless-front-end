@@ -48,6 +48,9 @@ export function Header() {
                 <span className="welcome-message">
                   Welcome, {authData.user.first_name}
                 </span>
+                <Link to="/profile" className="profile-btn">
+                  My Profile
+                </Link>
                 {isAdmin && (
                   <Link to="/admin" className="admin-btn">
                     Admin Dashboard
@@ -79,6 +82,13 @@ export function Header() {
                 Contact
               </Link>
             </li>
+            {authData.isAuthenticated && (
+              <li>
+                <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
+                  My Profile
+                </Link>
+              </li>
+            )}
             {isAdmin && (
               <li>
                 <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
