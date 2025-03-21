@@ -137,6 +137,17 @@ const AdminDashboard = () => {
     }
   }, [activeTab]);
 
+  // Add a separate effect that maintains focus on the input when typing
+  // This helps prevent the focus loss after each keystroke
+  const prevSearchEmailRef = useRef(searchEmail);
+  useEffect(() => {
+    // Only refocus if the searchEmail value has changed
+    if (searchEmail !== prevSearchEmailRef.current && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+    prevSearchEmailRef.current = searchEmail;
+  }, [searchEmail]);
+
   const handleSaveWatch = async (watchData, mode) => {
     if (!watchData) {
       setError('No watch data provided');
@@ -251,6 +262,17 @@ const AdminDashboard = () => {
       setError('Error searching for user');
     } finally {
       setIsLoading(false);
+      // Refocus the input field after search
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+      }
+    }
+  };
+
+  // Add a handler for the Enter key in the search input
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearchUser();
     }
   };
 
@@ -486,6 +508,7 @@ const AdminDashboard = () => {
                   className="search-input"
                   value={searchEmail}
                   onChange={(e) => setSearchEmail(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   ref={searchInputRef}
                 />
                 <button
