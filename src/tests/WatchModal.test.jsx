@@ -189,4 +189,101 @@ describe('WatchModal Component', () => {
         expect(screen.queryByPlaceholderText(/enter new brand name/i)).not.toBeInTheDocument();
       });
 
+      // error handling and form validation
+
+      it('should validate and create new brand', async () => {
+        const newBrand = { _id: 'brand3', brand_name: 'Patek Philippe' };
+        api.brands.create.mockResolvedValue(newBrand);
+    
+        render(<WatchModal {...defaultProps} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        // add brand button click
+        fireEvent.click(screen.getByTitle('Add new brand'));
+        
+        // new brand name input
+        const brandInput = screen.getByPlaceholderText(/enter new brand name/i);
+        fireEvent.change(brandInput, { target: { value: 'Patek Philippe' } });
+        
+        // add button click
+        const addButton = screen.getByRole('button', { name: /add$/i });
+        fireEvent.click(addButton);
+        
+        // check api called correctly
+        await waitFor(() => {
+          expect(api.brands.create).toHaveBeenCalledWith({ brand_name: 'Patek Philippe' });
+        });
+        
+        // form should return to brand select with new brand selected
+        await waitFor(() => {
+          expect(screen.queryByPlaceholderText(/enter new brand name/i)).not.toBeInTheDocument();
+        });
+      });
+    
+      it('should validate empty brand name', async () => {
+        render(<WatchModal {...defaultProps} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        // add brand button click
+        fireEvent.click(screen.getByTitle('Add new brand'));
+        
+        // add without entering a name click
+        const addButton = screen.getByRole('button', { name: /add$/i });
+        fireEvent.click(addButton);
+        
+        // should show error msg
+        expect(screen.getByText('Brand name cannot be empty')).toBeInTheDocument();
+        
+        // should not call api
+        expect(api.brands.create).not.toHaveBeenCalled();
+      });
+    
+      it('should handle image URL validation', async () => {
+        // mock validateImageUrl fail
+        validateImageUrl.mockReturnValue(false);
+        
+        render(<WatchModal {...defaultProps} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        // invalid image URL input
+        const imageUrlInput = screen.getByLabelText(/image url/i);
+        fireEvent.change(imageUrlInput, { target: { value: 'invalid-url' } });
+        
+        // should show error msg
+        await waitFor(() => {
+          expect(screen.getByText('Please enter a valid image URL')).toBeInTheDocument();
+        });
+      });
+    
+      it('should handle inaccessible image URLs', async () => {
+        // Img URL valid but not accessible
+        validateImageUrl.mockReturnValue(true);
+        isImageUrlAccessible.mockResolvedValue(false);
+        getImagePlaceholder.mockReturnValue('placeholder-url');
+        
+        render(<WatchModal {...defaultProps} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        // valid but inaccessible img URL input
+        const imageUrlInput = screen.getByLabelText(/image url/i);
+        fireEvent.change(imageUrlInput, { target: { value: 'https://example.com/nonexistent.jpg' } });
+        
+        // should show error msg
+        await waitFor(() => {
+          expect(screen.getByText('Cannot load image. Please check the URL.')).toBeInTheDocument();
+        });
+      });
+
 });
