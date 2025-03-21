@@ -579,7 +579,7 @@ const Checkout = () => {
             <div className="success-actions">
               <button
                 className="btn-secondary"
-                onClick={() => navigate('/account/rentals')}
+                onClick={() => navigate('/account/profile')}
               >
                 View My Rentals
               </button>

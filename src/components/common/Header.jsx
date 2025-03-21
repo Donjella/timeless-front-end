@@ -50,11 +50,11 @@ export function Header() {
                   Welcome, {authData.user.first_name}
                 </span>
 
-                {/* My Rentals button for regular users */}
+                {/* User Profile button for regular users */}
                 {!isAdmin && (
-                  <Link to="/account/rentals" className="rentals-btn">
-                    <Watch size={18} />
-                    <span>My Rentals</span>
+                  <Link to="/account/profile" className="profile-btn">
+                    <User size={18} />
+                    <span>My Profile</span>
                   </Link>
                 )}
 
@@ -94,10 +94,10 @@ export function Header() {
             {authData.isAuthenticated && !isAdmin && (
               <li>
                 <Link
-                  to="/account/rentals"
+                  to="/account/profile"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  My Rentals
+                  My Profile
                 </Link>
               </li>
             )}

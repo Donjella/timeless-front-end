@@ -274,7 +274,10 @@ const UserRentals = () => {
                       }
                       alt={rental.watch?.model || 'Watch'}
                       onError={(e) => {
-                        console.log("Image failed to load:", rental.watch?.image_url);
+                        console.log(
+                          'Image failed to load:',
+                          rental.watch?.image_url
+                        );
                         // If the image fails to load, set onError to null to prevent infinite loop
                         e.target.onerror = null;
                         // Use the data URI placeholder instead of trying to load another image

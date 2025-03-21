@@ -47,12 +47,12 @@ export const isImageUrlAccessible = async (url) => {
  */
 export const normalizeImageUrl = (url) => {
   if (!url) return '';
-  
+
   url = url.trim();
-  
+
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
     url = `https://${url}`;
   }
-  
+
   return url;
 };

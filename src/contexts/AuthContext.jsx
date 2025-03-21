@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 // Token expiration checker
 const isTokenExpired = (token) => {
   if (!token) return true;
-  
+
   try {
     // Token has format: header.payload.signature
     const base64Url = token.split('.')[1];
@@ -12,12 +12,12 @@ const isTokenExpired = (token) => {
     const jsonPayload = decodeURIComponent(
       atob(base64)
         .split('')
-        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     );
-    
+
     const { exp } = JSON.parse(jsonPayload);
-    
+
     // Check if expiration time is past current time
     return exp * 1000 < Date.now();
   } catch (e) {
@@ -53,7 +53,7 @@ export function AuthProvider({ children }) {
     if (storedAuth) {
       try {
         const parsedAuth = JSON.parse(storedAuth);
-        
+
         // Check if token is expired
         if (parsedAuth.token && isTokenExpired(parsedAuth.token)) {
           console.warn('Token expired, logging out');

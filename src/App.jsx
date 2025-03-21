@@ -13,9 +13,9 @@ import { Login } from './pages/Login';
 import AdminDashboard from './components/AdminDashboard';
 import WatchCatalog from './components/WatchCatalog';
 import Checkout from './components/Checkout';
-import SimplifiedCheckout from './components/SimplifiedCheckout'; // Import the new component
+import SimplifiedCheckout from './components/SimplifiedCheckout';
 import UserProfile from './components/UserProfile';
-import UserRentals from './components/UserRentals';
+import EditProfile from './components/EditProfile';
 import { useAuthData } from './hooks/useAuthData';
 
 function App() {
@@ -121,7 +121,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+
           {/* Simplified checkout route for rental payments */}
           <Route
             path="payment"
@@ -140,10 +140,10 @@ function App() {
             }
           />
           <Route
-            path="account/rentals"
+            path="account/edit-profile"
             element={
               <ProtectedRoute>
-                <UserRentals />
+                <EditProfile />
               </ProtectedRoute>
             }
           />
