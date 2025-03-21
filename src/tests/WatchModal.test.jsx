@@ -309,7 +309,7 @@ describe('WatchModal Component', () => {
           expect(api.brands.getAll).toHaveBeenCalled();
         });
         
-        // Fill out the form
+        // fill out form
         const modelInput = screen.getByLabelText(/model/i);
         fireEvent.change(modelInput, { target: { value: 'Submariner' } });
         
@@ -328,11 +328,11 @@ describe('WatchModal Component', () => {
         const imageUrlInput = screen.getByLabelText(/image url/i);
         fireEvent.change(imageUrlInput, { target: { value: 'https://example.com/watch.jpg' } });
         
-        // Submit the form
+        // submit form
         const submitButton = screen.getByRole('button', { name: /add watch/i });
         fireEvent.click(submitButton);
         
-        // Check that onSave was called with correct data
+        // check that onSave was called with correct data
         await waitFor(() => {
           expect(defaultProps.onSave).toHaveBeenCalledWith(
             expect.objectContaining(expectedFormData),
@@ -359,15 +359,15 @@ describe('WatchModal Component', () => {
           expect(api.brands.getAll).toHaveBeenCalled();
         });
         
-        // Update the price
+        // update price
         const priceInput = screen.getByLabelText(/price\/day/i);
         fireEvent.change(priceInput, { target: { value: '50' } });
         
-        // Submit the form
+        // submit form
         const submitButton = screen.getByRole('button', { name: /update watch/i });
         fireEvent.click(submitButton);
         
-        // Check that onSave was called with correct data and mode
+        // check that onSave was called with correct data and mode
         await waitFor(() => {
           expect(defaultProps.onSave).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -380,13 +380,13 @@ describe('WatchModal Component', () => {
       });
     
       it('should display error messages from API calls', async () => {
-        // Mock API error
+        // mock api error
         const errorMessage = 'Failed to load brands';
         api.brands.getAll.mockRejectedValue(new Error(errorMessage));
         
         render(<WatchModal {...defaultProps} />);
         
-        // Error message should be displayed
+        // error msg should display
         await waitFor(() => {
           expect(screen.getByText('Failed to load brands. Please try again.')).toBeInTheDocument();
         });
@@ -399,15 +399,15 @@ describe('WatchModal Component', () => {
           expect(api.brands.getAll).toHaveBeenCalled();
         });
         
-        // Clear the model field (required)
+        // clear the model field (required)
         const modelInput = screen.getByLabelText(/model/i);
         fireEvent.change(modelInput, { target: { value: '' } });
         
-        // Submit the form
+        // submit form
         const submitButton = screen.getByRole('button', { name: /add watch/i });
         fireEvent.click(submitButton);
         
-        // Form should not have been submitted
+        // form should not have been submitted
         expect(defaultProps.onSave).not.toHaveBeenCalled();
       });
     
@@ -418,7 +418,7 @@ describe('WatchModal Component', () => {
           expect(api.brands.getAll).toHaveBeenCalled();
         });
         
-        // Enter negative values for numeric fields
+        // enter negative values for numeric fields
         const yearInput = screen.getByLabelText(/year/i);
         fireEvent.change(yearInput, { target: { value: '-2000' } });
         
@@ -428,23 +428,20 @@ describe('WatchModal Component', () => {
         const quantityInput = screen.getByLabelText(/quantity/i);
         fireEvent.change(quantityInput, { target: { value: '-5' } });
         
-        // HTML validation should prevent this, but we're checking the form processing
-        // For year, it should respect the min attribute
-        // For price and quantity, negative values are converted to numbers
-        
-        // Fill required model field
+
+        // fill required model field
         const modelInput = screen.getByLabelText(/model/i);
         fireEvent.change(modelInput, { target: { value: 'Test Model' } });
         
-        // Submit the form
+        // submit form
         const submitButton = screen.getByRole('button', { name: /add watch/i });
         fireEvent.click(submitButton);
         
-        // Check that onSave was called with correct numeric conversions
+        // check that onSave was called with correct numeric conversions
         await waitFor(() => {
           expect(defaultProps.onSave).toHaveBeenCalledWith(
             expect.objectContaining({
-              year: -2000, // This would normally be prevented by min attribute
+              year: -2000, //  normally prevented by min attribute
               rental_day_price: -10,
               quantity: -5,
             }),
@@ -460,7 +457,7 @@ describe('WatchModal Component', () => {
           expect(api.brands.getAll).toHaveBeenCalled();
         });
         
-        // Click the cancel button
+        // cancel button click
         const cancelButton = screen.getByRole('button', { name: /cancel/i });
         fireEvent.click(cancelButton);
         
@@ -475,7 +472,7 @@ describe('WatchModal Component', () => {
           expect(api.brands.getAll).toHaveBeenCalled();
         });
         
-        // Click the close button (X)
+        // close button click (X)
         const closeButton = screen.getByRole('button', { name: /×/i });
         fireEvent.click(closeButton);
         
@@ -493,15 +490,46 @@ describe('WatchModal Component', () => {
           expect(api.brands.getAll).toHaveBeenCalled();
         });
         
-        // Enter a valid image URL
+        // valid img URL input
         const imageUrlInput = screen.getByLabelText(/image url/i);
         fireEvent.change(imageUrlInput, { target: { value: 'https://example.com/watch.jpg' } });
         
-        // Image preview should be displayed
+        // Img preview should be displayed
         await waitFor(() => {
           const previewImage = screen.getByAltText('Watch preview');
           expect(previewImage).toBeInTheDocument();
           expect(previewImage).toHaveAttribute('src', 'https://example.com/watch.jpg');
+        });
+      });
+
+      // test for edge cases
+
+      it('should handle image loading errors', async () => {
+        render(<WatchModal {...defaultProps} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        // wait for component to be ready
+        await waitFor(() => {
+          expect(screen.queryByText('Loading brands...')).not.toBeInTheDocument();
+        });
+        
+        // valid img URL input
+        const imageUrlInput = screen.getByLabelText(/image url/i);
+        fireEvent.change(imageUrlInput, { target: { value: 'https://example.com/watch.jpg' } });
+        
+        // simulate img load error
+        await waitFor(() => {
+          const previewImage = screen.getByAltText('Watch preview');
+          fireEvent.error(previewImage);
+        });
+        
+        // placeholder should be shown and error message displayed
+        await waitFor(() => {
+          expect(getImagePlaceholder).toHaveBeenCalled();
+          expect(screen.getByText('Failed to load image')).toBeInTheDocument();
         });
       });
 
