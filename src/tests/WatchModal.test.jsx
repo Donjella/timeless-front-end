@@ -95,6 +95,35 @@ describe('WatchModal Component', () => {
         expect(screen.getByText('Edit Watch')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /update watch/i })).toBeInTheDocument();
     });
+
+    // testing form handles data correctly 
+    it('should populate form with watch data when editing', async () => {
+        const mockWatch = {
+          _id: 'watch1',
+          brand: { _id: 'brand1', brand_name: 'Rolex' },
+          model: 'Submariner',
+          year: 2022,
+          rental_day_price: 50,
+          condition: 'Excellent',
+          quantity: 3,
+          image_url: 'https://example.com/watch.jpg',
+        };
+    
+        render(<WatchModal {...defaultProps} watch={mockWatch} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        // Check that form fields are populated correctly
+        expect(screen.getByLabelText(/model/i)).toHaveValue('Submariner');
+        expect(screen.getByLabelText(/year/i)).toHaveValue(2022);
+        expect(screen.getByLabelText(/price\/day/i)).toHaveValue(50);
+        expect(screen.getByLabelText(/condition/i)).toHaveValue('Excellent');
+        expect(screen.getByLabelText(/quantity/i)).toHaveValue(3);
+        expect(screen.getByLabelText(/image url/i)).toHaveValue('https://example.com/watch.jpg');
+      });
+
     
 
 });
