@@ -33,11 +33,25 @@ function App() {
     return children;
   };
 
-  // PropTypes validation for AdminRoute
+  
+  // Protected route component for authenticated users
+  const PrivateRoute = ({ children }) => {
+    if (!authData.isAuthenticated) {
+      return <Navigate to="/login" />;
+    }
+
+    return children;
+  };
+
+// PropTypes validation for AdminRoute
   AdminRoute.propTypes = {
     children: PropTypes.node.isRequired,
   };
 
+PrivateRoute.propTypes = {
+    children: PropTypes.node.isRequired,
+  };
+  
   // Simple placeholder for HomePage
   const HomePage = () => {
     return (
