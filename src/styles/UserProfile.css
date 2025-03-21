@@ -193,3 +193,47 @@
     margin-bottom: 1.5rem;
     text-align: center;
 }
+
+/* extra semantic styling */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* reset margins for definition lists */
+dl {
+    margin: 0;
+}
+
+dt, dd {
+    margin: 0;
+}
+
+/* fieldset styling */
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+legend {
+    width: 100%;
+    padding: 0;
+}
+
+/* responsive design */
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
