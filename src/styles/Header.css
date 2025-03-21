@@ -42,7 +42,7 @@
   align-items: center; /* This centers items vertically */
 }
 
-.login-btn, .register-btn, .admin-btn {
+.login-btn, .register-btn, .admin-btn, .profile-btn {
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -83,6 +83,19 @@
 .admin-btn:hover {
   background-color: #1c2b3a;
 }
+/* Profile Button */
+.profile-btn {
+  background-color: #555;
+  color: white;
+  padding: 0 16px;
+  border-radius: 4px;
+  line-height: 36px; /* Match the height */
+}
+
+.profile-btn:hover {
+  background-color: #444;
+}
+
 
 /* Welcome message */
 .welcome-message {
@@ -135,7 +148,7 @@
   color: #333;
 }
 
-/* Style for Admin Dashboard in navbar */
+/* Style for Admin Dashboard and profile in navbar */
 .nav-links a[href="/admin"] {
   color: #2a3f54;
   font-weight: 600;
@@ -144,6 +157,16 @@
 .nav-links a[href="/admin"]:hover {
   color: #1c2b3a;
 }
+
+.nav-links a[href="/profile"] {
+  color: #555;
+  font-weight: 600;
+}
+
+.nav-links a[href="/profile"]:hover {
+  color: #333;
+}
+
 
 /* Mobile menu button */
 .mobile-menu-button {
@@ -184,11 +207,17 @@
   color: #333;
 }
 
-/* Style for Admin Dashboard in mobile menu */
+/* Style for Admin Dashboard and profile in mobile menu */
 .mobile-menu a[href="/admin"] {
   color: #2a3f54;
   font-weight: 600;
 }
+
+.mobile-menu a[href="/profile"] {
+  color: #555;
+  font-weight: 600;
+}
+
 
 .mobile-menu button {
   background: none;
@@ -238,7 +267,7 @@
     justify-content: flex-end;
   }
   
-  .admin-btn {
+  .admin-btn, .profile-btn {
     order: -1;
     margin-bottom: 5px;
   }
