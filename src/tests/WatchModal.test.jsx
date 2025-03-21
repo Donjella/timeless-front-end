@@ -49,9 +49,52 @@ describe('WatchModal Component', () => {
       beforeEach(() => {
         vi.clearAllMocks();
         
-        // Default mock implementations
+        // default mock implementation
         api.brands.getAll.mockResolvedValue(mockBrands);
         validateImageUrl.mockImplementation((url) => !!url);
         isImageUrlAccessible.mockResolvedValue(true);
       });
+
+    // test basic rendering
+    it('should not render anything when isOpen is false', () => {
+        const { container } = render(
+            <WatchModal {...defaultProps} isOpen={false} />
+        );
+        expect(container).toBeEmptyDOMElement();
+    });
+
+    it('should render as "Add New Watch" when no watch provided', async () => {
+        render(<WatchModal {...defaultProps} />);
+
+        await waitFor(() => {
+            expect(api.brands.getAll).toHaveBeenCalled();
+        });
+
+        expect(screen.getByText('Add New Watch')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /add watch/i })).toBeInTheDocument();
+    });
+
+    it('should render as "Edit Watch" when a watch is provided', async () => {
+        const mockWatch = {
+          _id: 'watch1',
+          brand: { _id: 'brand1', brand_name: 'Rolex' },
+          model: 'Submariner',
+          year: 2022,
+          rental_day_price: 50,
+          condition: 'Excellent',
+          quantity: 3,
+          image_url: 'https://example.com/watch.jpg',
+        };
+    
+        render(<WatchModal {...defaultProps} watch={mockWatch} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        expect(screen.getByText('Edit Watch')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /update watch/i })).toBeInTheDocument();
+    });
+    
+
 });
