@@ -89,20 +89,94 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container user-modal">
-        <div className="modal-header">
-          <h2>{user ? 'Edit User' : 'Add New User'}</h2>
-          <button className="btn-close" onClick={onClose}>
+    <div
+      className="modal-overlay"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999,
+      }}
+    >
+      <div
+        className="modal-container user-modal"
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          width: '100%',
+          maxWidth: '500px',
+          maxHeight: '90vh',
+          overflow: 'auto',
+          position: 'relative',
+        }}
+      >
+        <div
+          className="modal-header"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '16px 20px',
+            borderBottom: '1px solid #eaeaea',
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: '20px', color: '#333' }}>
+            {user ? 'Edit User' : 'Add New User'}
+          </h2>
+          <button
+            className="btn-close"
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#666',
+              padding: '4px',
+            }}
+          >
             <X size={18} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="modal-form">
-          {error && <div className="error-text">{error}</div>}
+        <form
+          onSubmit={handleSubmit}
+          className="modal-form"
+          style={{ padding: '20px' }}
+        >
+          {error && (
+            <div
+              className="error-text"
+              style={{
+                color: '#e53935',
+                marginBottom: '16px',
+                padding: '10px',
+                backgroundColor: '#ffebee',
+                borderRadius: '4px',
+              }}
+            >
+              {error}
+            </div>
+          )}
 
-          <div className="form-group">
-            <label htmlFor="name">Full Name</label>
+          <div className="form-group" style={{ marginBottom: '16px' }}>
+            <label
+              htmlFor="name"
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: '500',
+                color: '#555',
+              }}
+            >
+              Full Name
+            </label>
             <input
               type="text"
               id="name"
@@ -110,11 +184,28 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
               value={formData.name}
               onChange={handleChange}
               required
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                fontSize: '16px',
+              }}
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
+          <div className="form-group" style={{ marginBottom: '16px' }}>
+            <label
+              htmlFor="email"
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: '500',
+                color: '#555',
+              }}
+            >
+              Email
+            </label>
             <input
               type="email"
               id="email"
@@ -122,40 +213,100 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
               value={formData.email}
               onChange={handleChange}
               required
-              disabled={!!user} // Disable email change for existing users
+              disabled={!!user}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                fontSize: '16px',
+                backgroundColor: !!user ? '#f5f5f5' : '#fff',
+              }}
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="phone">Phone Number</label>
+          <div className="form-group" style={{ marginBottom: '16px' }}>
+            <label
+              htmlFor="phone"
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: '500',
+                color: '#555',
+              }}
+            >
+              Phone Number
+            </label>
             <input
               type="tel"
               id="phone"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                fontSize: '16px',
+              }}
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="role">User Role</label>
+          <div className="form-group" style={{ marginBottom: '16px' }}>
+            <label
+              htmlFor="role"
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: '500',
+                color: '#555',
+              }}
+            >
+              User Role
+            </label>
             <select
               id="role"
               name="role"
               value={formData.role}
               onChange={handleChange}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                fontSize: '16px',
+              }}
             >
               <option value="user">User</option>
               <option value="admin">Admin</option>
             </select>
           </div>
 
-          <div className="modal-footer">
+          <div
+            className="modal-footer"
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '12px',
+              marginTop: '24px',
+            }}
+          >
             <button
               type="button"
               className="btn btn-secondary"
               onClick={onClose}
               disabled={isLoading}
+              style={{
+                padding: '10px 16px',
+                borderRadius: '4px',
+                fontWeight: '500',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                backgroundColor: '#f5f5f5',
+                color: '#333',
+                border: 'none',
+                opacity: isLoading ? 0.6 : 1,
+              }}
             >
               Cancel
             </button>
@@ -163,6 +314,16 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
               type="submit"
               className="btn btn-primary"
               disabled={isLoading}
+              style={{
+                padding: '10px 16px',
+                borderRadius: '4px',
+                fontWeight: '500',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                backgroundColor: '#4a90e2',
+                color: 'white',
+                border: 'none',
+                opacity: isLoading ? 0.6 : 1,
+              }}
             >
               {isLoading ? 'Saving...' : user ? 'Update User' : 'Add User'}
             </button>
