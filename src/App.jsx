@@ -16,7 +16,7 @@ import SimplifiedCheckout from './components/SimplifiedCheckout';
 import UserProfile from './components/UserProfile';
 import EditProfile from './components/EditProfile';
 import About from './pages/About';
-import HomePage from './pages/Home';  
+import HomePage from './pages/Home';
 import { useAuthData } from './hooks/useAuthData';
 
 function App() {

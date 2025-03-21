@@ -1,24 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/admin-dashboard.css';
 import WatchModal from './WatchModal';
+import UserModal from './UserModal';
 import { api } from '../utils/api';
 import { Plus, Edit, Trash2, X, Search, AlertCircle } from 'lucide-react';
 
 const AdminDashboard = () => {
-  // State
   const [activeTab, setActiveTab] = useState('watches');
   const [watches, setWatches] = useState([]);
   const [brands, setBrands] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
   const [currentWatch, setCurrentWatch] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [apiConnectionFailed, setApiConnectionFailed] = useState(false);
+  
+  const [searchEmail, setSearchEmail] = useState('');
+  const [searchedUser, setSearchedUser] = useState(null);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  // Fetch watches and brands from API on component mount
   useEffect(() => {
-    // Flag to prevent state updates if component unmounts during API call
     let isMounted = true;
 
     const fetchData = async () => {
@@ -27,18 +31,16 @@ const AdminDashboard = () => {
       setIsLoading(true);
       setError(null);
 
-      // Set a timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
         if (isMounted && isLoading) {
           setError('Request timed out. The server may be unavailable.');
           setIsLoading(false);
           setApiConnectionFailed(true);
         }
-      }, 15000); // 15 second timeout
+      }, 15000); 
 
       try {
-        // Fetch both watches and brands in parallel
-        const [watchesData, brandsData] = await Promise.all([
+        const [watchesData, brandsData, usersData] = await Promise.all([
           api.watches.getAll().catch((err) => {
             console.error('Error fetching watches:', err);
             throw err;
@@ -47,20 +49,21 @@ const AdminDashboard = () => {
             console.error('Error fetching brands:', err);
             throw err;
           }),
+          api.users.getAll().catch((err) => {
+            console.error('Error fetching users:', err);
+            throw err;
+          }),
         ]);
 
-        // Clear timeout as request succeeded
         clearTimeout(timeoutId);
 
         if (!isMounted) return;
 
-        // Check if the data is valid
-        if (!Array.isArray(watchesData) || !Array.isArray(brandsData)) {
-          console.error('Invalid data format:', { watchesData, brandsData });
+        if (!Array.isArray(watchesData) || !Array.isArray(brandsData) || !Array.isArray(usersData)) {
+          console.error('Invalid data format:', { watchesData, brandsData, usersData });
           throw new Error('Invalid data format received from server');
         }
 
-        // Create a map of brand IDs to brand objects for quick lookup
         const brandMap = {};
         brandsData.forEach((brand) => {
           if (brand && brand._id) {
@@ -68,12 +71,10 @@ const AdminDashboard = () => {
           }
         });
 
-        // Ensure watches have populated brand information
         const processedWatches = watchesData
           .map((watch) => {
             if (!watch) return null;
 
-            // If brand is just an ID string but we have the brand info
             if (typeof watch.brand === 'string' && brandMap[watch.brand]) {
               return {
                 ...watch,
@@ -85,11 +86,12 @@ const AdminDashboard = () => {
             }
             return watch;
           })
-          .filter(Boolean); // Remove null values
+          .filter(Boolean); 
 
         if (isMounted) {
           setBrands(brandsData);
           setWatches(processedWatches);
+          setUsers(usersData);
           setApiConnectionFailed(false);
         }
       } catch (err) {
@@ -109,13 +111,11 @@ const AdminDashboard = () => {
 
     fetchData();
 
-    // Cleanup function to prevent state updates after unmount
     return () => {
       isMounted = false;
     };
   }, []);
 
-  // Handler for saving watch data (both add and edit)
   const handleSaveWatch = async (watchData, mode) => {
     if (!watchData) {
       setError('No watch data provided');
@@ -125,27 +125,23 @@ const AdminDashboard = () => {
     setIsLoading(true);
     setError(null);
 
-    // Set a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       if (isLoading) {
         setError('Request timed out. The server may be unavailable.');
         setIsLoading(false);
       }
-    }, 10000); // 10 second timeout
+    }, 10000);
 
     try {
       if (mode === 'add') {
-        // Add new watch via API
         const newWatch = await api.watches.create(watchData);
 
-        // Clear timeout as request succeeded
         clearTimeout(timeoutId);
 
         if (!newWatch || typeof newWatch !== 'object') {
           throw new Error('Invalid response when creating watch');
         }
 
-        // Ensure the brand information is populated properly
         const brandInfo = brands.find((b) => b._id === newWatch.brand);
         const processedNewWatch = {
           ...newWatch,
@@ -159,20 +155,17 @@ const AdminDashboard = () => {
 
         setWatches([...watches, processedNewWatch]);
       } else if (mode === 'edit' && currentWatch) {
-        // Edit existing watch via API
         const updatedWatch = await api.watches.update(
           currentWatch._id,
           watchData
         );
 
-        // Clear timeout as request succeeded
         clearTimeout(timeoutId);
 
         if (!updatedWatch || typeof updatedWatch !== 'object') {
           throw new Error('Invalid response when updating watch');
         }
 
-        // Ensure the brand information is populated properly
         const brandInfo = brands.find((b) => b._id === updatedWatch.brand);
         const processedUpdatedWatch = {
           ...updatedWatch,
@@ -194,8 +187,7 @@ const AdminDashboard = () => {
         throw new Error('Invalid mode or missing watch data');
       }
 
-      // Close modal after successful save
-      setIsModalOpen(false);
+      setIsWatchModalOpen(false);
       setCurrentWatch(null);
     } catch (err) {
       clearTimeout(timeoutId);
@@ -204,74 +196,86 @@ const AdminDashboard = () => {
       setError(
         `Failed to ${mode === 'add' ? 'create' : 'update'} watch: ${err.message || 'Unknown error'}`
       );
-      // We don't close the modal so the user can try again
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handler for opening edit modal
   const handleEditWatch = (watch) => {
     if (!watch) return;
 
     setCurrentWatch(watch);
-    setIsModalOpen(true);
+    setIsWatchModalOpen(true);
   };
 
-  // Handler for delete confirmation
-  const handleDeleteClick = (watch) => {
-    if (!watch) return;
-
-    setConfirmDelete(watch);
+  const handleSearchUser = async () => {
+    if (!searchEmail) {
+      setError('Please enter an email address');
+      return;
+    }
+  
+    setIsLoading(true);
+    setError(null);
+    setSearchedUser(null);
+  
+    try {
+      const foundUser = users.find(
+        (user) => user.email.toLowerCase() === searchEmail.toLowerCase().trim()
+      );
+  
+      if (foundUser) {
+        setSearchedUser(foundUser);
+      } else {
+        setError('No user found with this email address');
+      }
+    } catch (err) {
+      setError('Error searching for user');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Handler for confirming deletion
+  const handleDeleteClick = (target) => {
+    if (!target) return;
+
+    setConfirmDelete(target);
+  };
+
   const handleConfirmDelete = async () => {
     if (!confirmDelete || !confirmDelete._id) {
-      setError('Invalid watch selected for deletion');
+      setError('Invalid target selected for deletion');
       return;
     }
 
     setIsLoading(true);
     setError(null);
 
-    // Set a timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      if (isLoading) {
-        setError('Request timed out. The server may be unavailable.');
-        setIsLoading(false);
-      }
-    }, 10000); // 10 second timeout
-
     try {
-      // Delete watch via API
-      await api.watches.delete(confirmDelete._id);
+      if (confirmDelete.model) {
+        await api.watches.delete(confirmDelete._id);
+        setWatches(watches.filter((watch) => watch._id !== confirmDelete._id));
+      } else if (confirmDelete.email) {
+        await api.users.delete(confirmDelete._id);
+        setUsers(users.filter((user) => user._id !== confirmDelete._id));
+        setSearchedUser(null);
+      }
 
-      // Clear timeout as request succeeded
-      clearTimeout(timeoutId);
-
-      setWatches(watches.filter((watch) => watch._id !== confirmDelete._id));
       setConfirmDelete(null);
     } catch (err) {
-      clearTimeout(timeoutId);
-
-      console.error('Error deleting watch:', err);
-      setError(`Failed to delete watch: ${err.message || 'Unknown error'}`);
+      console.error('Error deleting:', err);
+      setError(`Failed to delete: ${err.message || 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handler for canceling deletion
   const handleCancelDelete = () => {
     setConfirmDelete(null);
   };
 
-  // Function to get brand name from a watch
   const getBrandName = (watch) => {
     if (!watch) return 'Unknown Brand';
 
-    // If brand is a populated object with brand_name
     if (
       watch.brand &&
       typeof watch.brand === 'object' &&
@@ -280,7 +284,6 @@ const AdminDashboard = () => {
       return watch.brand.brand_name;
     }
 
-    // If brand is just an ID, try to find it in our brands list
     if (watch.brand && typeof watch.brand === 'string') {
       const brandInfo = brands.find((b) => b._id === watch.brand);
       if (brandInfo) {
@@ -288,11 +291,50 @@ const AdminDashboard = () => {
       }
     }
 
-    // Default fallback
     return 'Unknown Brand';
   };
 
-  // If API connection completely failed, show a simplified view
+  const handleEditUser = (user) => {
+    if (!user) return;
+
+    setCurrentUser(user);
+    setIsUserModalOpen(true);
+  };
+  
+  const handleSaveUser = async (userData, mode) => {
+    if (!userData) {
+      setError('No user data provided');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      if (mode === 'add') {
+        await api.users.create(userData);
+        setUsers([...users, userData]);
+      } else if (mode === 'edit' && currentUser) {
+        await api.users.update(currentUser._id, userData);
+        setUsers(users.map((user) => 
+          user._id === currentUser._id ? { ...user, ...userData } : user
+        ));
+      } else {
+        throw new Error('Invalid mode or missing user data');
+      }
+
+      setIsUserModalOpen(false);
+      setCurrentUser(null);
+    } catch (err) {
+      console.error('Error saving user:', err);
+      setError(
+        `Failed to ${mode === 'add' ? 'create' : 'update'} user: ${err.message || 'Unknown error'}`
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (apiConnectionFailed) {
     return (
       <div className="admin-dashboard">
@@ -330,7 +372,7 @@ const AdminDashboard = () => {
                 className="btn btn-primary btn-add"
                 onClick={() => {
                   setCurrentWatch(null);
-                  setIsModalOpen(true);
+                  setIsWatchModalOpen(true);
                 }}
                 disabled={isLoading}
               >
@@ -358,7 +400,7 @@ const AdminDashboard = () => {
                   <p>No watches found.</p>
                   <button
                     className="btn btn-primary"
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => setIsWatchModalOpen(true)}
                   >
                     Add your first watch
                   </button>
@@ -410,74 +452,6 @@ const AdminDashboard = () => {
           </div>
         );
 
-      case 'payments':
-        return (
-          <div className="tab-content">
-            <div className="content-header">
-              <h2>Payment Management</h2>
-              <div className="filters">
-                <select className="filter-select">
-                  <option>All Status</option>
-                  <option>Paid</option>
-                  <option>Unpaid</option>
-                </select>
-              </div>
-            </div>
-            <div className="data-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Payment ID</th>
-                    <th>Rental ID</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>PAY001</td>
-                    <td>RENT001</td>
-                    <td>$600</td>
-                    <td>
-                      <span className="status-badge status-pending">
-                        Pending
-                      </span>
-                    </td>
-                    <td>2024-02-14</td>
-                    <td className="actions">
-                      <button className="btn btn-small btn-success">
-                        Paid
-                      </button>
-                      <button className="btn btn-small btn-danger">
-                        Unpaid
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>PAY002</td>
-                    <td>RENT002</td>
-                    <td>$450</td>
-                    <td>
-                      <span className="status-badge status-success">Paid</span>
-                    </td>
-                    <td>2024-02-15</td>
-                    <td className="actions">
-                      <button className="btn btn-small btn-success disabled">
-                        Paid
-                      </button>
-                      <button className="btn btn-small btn-danger">
-                        Unpaid
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-
       case 'users':
         return (
           <div className="tab-content">
@@ -486,63 +460,98 @@ const AdminDashboard = () => {
               <div className="search-container">
                 <Search className="search-icon" size={18} />
                 <input
-                  type="text"
-                  placeholder="Search users..."
+                  type="email"
+                  placeholder="Search by email..."
                   className="search-input"
+                  value={searchEmail}
+                  onChange={(e) => setSearchEmail(e.target.value)}
+                  autoFocus
                 />
+                <button 
+                  className="btn btn-primary ml-2"
+                  onClick={handleSearchUser}
+                  disabled={isLoading}
+                >
+                  Search
+                </button>
               </div>
+              <button
+                className="btn btn-primary btn-add"
+                onClick={() => {
+                  setCurrentUser(null);
+                  setIsUserModalOpen(true);
+                }}
+                disabled={isLoading}
+              >
+                <Plus size={18} /> Add User
+              </button>
             </div>
+
+            {error && (
+              <div className="error-message">
+                {error}
+                <button
+                  className="btn-close-error"
+                  onClick={() => setError(null)}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            )}
+
             <div className="data-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Address</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>John Doe</td>
-                    <td>john@example.com</td>
-                    <td>0412345678</td>
-                    <td>123 Main St, Sydney</td>
-                    <td className="actions">
-                      <button className="btn-icon btn-edit">
-                        <Edit size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Jane Smith</td>
-                    <td>jane@example.com</td>
-                    <td>0498765432</td>
-                    <td>456 Park Ave, Melbourne</td>
-                    <td className="actions">
-                      <button className="btn-icon btn-edit">
-                        <Edit size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              {searchedUser ? (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{`${searchedUser.first_name} ${searchedUser.last_name}`}</td>
+                      <td>{searchedUser.email}</td>
+                      <td>{searchedUser.phone_number || 'N/A'}</td>
+                      <td className="actions">
+                        <button 
+                          className="btn-icon btn-edit"
+                          onClick={() => handleEditUser(searchedUser)}
+                          disabled={isLoading}
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          className="btn-icon btn-delete"
+                          onClick={() => handleDeleteClick(searchedUser)}
+                          disabled={isLoading}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              ) : (
+                <div className="empty-state">
+                  <p>Search for a user by email</p>
+                </div>
+              )}
             </div>
           </div>
         );
-
       default:
         return null;
     }
   };
-
+  
   return (
     <div className="admin-dashboard">
       <div className="dashboard-container">
         <h1 className="dashboard-title">Admin Dashboard</h1>
         <div className="dashboard-content">
-          {/* Sidebar */}
           <div className="sidebar">
             <div className="sidebar-menu">
               <button
@@ -552,12 +561,6 @@ const AdminDashboard = () => {
                 Watch Management
               </button>
               <button
-                onClick={() => setActiveTab('payments')}
-                className={`sidebar-item ${activeTab === 'payments' ? 'active' : ''}`}
-              >
-                Payment Management
-              </button>
-              <button
                 onClick={() => setActiveTab('users')}
                 className={`sidebar-item ${activeTab === 'users' ? 'active' : ''}`}
               >
@@ -565,28 +568,36 @@ const AdminDashboard = () => {
               </button>
             </div>
           </div>
-
-          {/* Main Content */}
           <div className="main-content">
             <TabContent />
           </div>
         </div>
       </div>
-
-      {/* Watch Modal */}
-      {isModalOpen && (
+      
+      {isWatchModalOpen && (
         <WatchModal
-          isOpen={isModalOpen}
+          isOpen={isWatchModalOpen}
           onClose={() => {
-            setIsModalOpen(false);
+            setIsWatchModalOpen(false);
             setCurrentWatch(null);
           }}
           watch={currentWatch}
           onSave={handleSaveWatch}
         />
       )}
-
-      {/* Delete Confirmation Modal */}
+      
+      {isUserModalOpen && (
+        <UserModal
+          isOpen={isUserModalOpen}
+          onClose={() => {
+            setIsUserModalOpen(false);
+            setCurrentUser(null);
+          }}
+          user={currentUser}
+          onSave={handleSaveUser}
+        />
+      )}
+      
       {confirmDelete && (
         <div className="modal-overlay">
           <div className="modal-container confirmation-modal">
@@ -598,8 +609,7 @@ const AdminDashboard = () => {
             </div>
             <div className="modal-content">
               <p>
-                Are you sure you want to delete the{' '}
-                {getBrandName(confirmDelete)} {confirmDelete.model}?
+                Are you sure you want to delete {confirmDelete.name || confirmDelete.model}?
               </p>
               <p>This action cannot be undone.</p>
             </div>
@@ -611,7 +621,7 @@ const AdminDashboard = () => {
                 Cancel
               </button>
               <button className="btn btn-danger" onClick={handleConfirmDelete}>
-                Delete
+                Delete 
               </button>
             </div>
           </div>

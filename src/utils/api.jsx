@@ -195,6 +195,12 @@ export const api = {
         method: 'DELETE',
         headers: createHeaders(),
       }),
+
+    searchByEmail: (email) =>
+      fetchWrapper(`/api/users/email/${email}`, {
+        method: 'GET',
+        headers: createHeaders(),
+      }),
   },
 
   // Watch endpoints

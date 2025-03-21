@@ -86,11 +86,6 @@ export function Header() {
                 About
               </Link>
             </li>
-            <li>
-              <Link to="/contact" onClick={() => setMobileMenuOpen(false)}>
-                Contact
-              </Link>
-            </li>
             {authData.isAuthenticated && !isAdmin && (
               <li>
                 <Link
