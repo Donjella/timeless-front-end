@@ -115,7 +115,7 @@ describe('WatchModal Component', () => {
           expect(api.brands.getAll).toHaveBeenCalled();
         });
         
-        // Check that form fields are populated correctly
+        // check that form fields are populated correctly
         expect(screen.getByLabelText(/model/i)).toHaveValue('Submariner');
         expect(screen.getByLabelText(/year/i)).toHaveValue(2022);
         expect(screen.getByLabelText(/price\/day/i)).toHaveValue(50);
@@ -124,6 +124,69 @@ describe('WatchModal Component', () => {
         expect(screen.getByLabelText(/image url/i)).toHaveValue('https://example.com/watch.jpg');
       });
 
+      // test functionality to manage brands
+
+      it('should load brands on mount and select first brand by default', async () => {
+        render(<WatchModal {...defaultProps} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        const brandSelect = screen.getByLabelText(/brand/i);
+        expect(brandSelect).toBeInTheDocument();
+        
+        // First brand should be selected by default
+        expect(brandSelect).toHaveValue('brand1');
+        
+        // Both brands should be in dropdown
+        expect(screen.getByText('Rolex')).toBeInTheDocument();
+        expect(screen.getByText('Omega')).toBeInTheDocument();
+      });
     
+      it('should show loading state while fetching brands', async () => {
+        // mock delayed api response
+        api.brands.getAll.mockImplementation(() => new Promise(resolve => {
+          setTimeout(() => resolve(mockBrands), 100);
+        }));
+    
+        render(<WatchModal {...defaultProps} />);
+        
+        // Loading indicator should be visible initially
+        expect(screen.getByText('Loading brands...')).toBeInTheDocument();
+        
+        // After loading completes, the select should be visible
+        await waitFor(() => {
+          expect(screen.queryByText('Loading brands...')).not.toBeInTheDocument();
+          expect(screen.getByLabelText(/brand/i)).toBeInTheDocument();
+        });
+      });
+    
+      it('should toggle brand creation form', async () => {
+        render(<WatchModal {...defaultProps} />);
+        
+        await waitFor(() => {
+          expect(api.brands.getAll).toHaveBeenCalled();
+        });
+        
+        // add brand form should not be visible on start
+        expect(screen.queryByPlaceholderText(/enter new brand name/i)).not.toBeInTheDocument();
+        
+        // test click add brand button
+        fireEvent.click(screen.getByTitle('Add new brand'));
+        
+        // new brand input should be visible
+        expect(screen.getByPlaceholderText(/enter new brand name/i)).toBeInTheDocument();
+        
+        // cancel button should be visible
+        const cancelButton = screen.getByRole('button', { name: /cancel/i });
+        expect(cancelButton).toBeInTheDocument();
+        
+        // clicking cancel should hide the form
+        fireEvent.click(cancelButton);
+        
+        // new brand input should be hidden again
+        expect(screen.queryByPlaceholderText(/enter new brand name/i)).not.toBeInTheDocument();
+      });
 
 });
