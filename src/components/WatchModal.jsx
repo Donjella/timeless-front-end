@@ -1,19 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/watch-modal.css';
 import { api } from '../utils/api';
+import { Upload, X } from 'lucide-react';
+import {
+  validateImageUrl,
+  isImageUrlAccessible,
+  getImagePlaceholder,
+} from '../utils/imageUtils';
 
-// Simple Close icon component
+// Simple icon components
 const CloseIcon = () => <span className="icon">×</span>;
 const PlusIcon = () => <span className="icon">+</span>;
 
 const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
   const [formData, setFormData] = useState({
-    brand_id: '', // Using brand_id as required by the controller
+    brand_id: '',
     model: '',
     year: new Date().getFullYear(),
     rental_day_price: '',
     condition: 'Good',
     quantity: 5,
+    image_url: '',
   });
 
   const [brands, setBrands] = useState([]);
@@ -22,6 +29,8 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
   const [isAddingBrand, setIsAddingBrand] = useState(false);
   const [newBrandName, setNewBrandName] = useState('');
   const [brandError, setBrandError] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageError, setImageError] = useState(null);
 
   // Valid condition options from backend
   const validConditions = ['New', 'Excellent', 'Good', 'Fair', 'Poor'];
@@ -54,10 +63,10 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
     }
   }, [isOpen]);
 
+  // Reset or populate form when watch or modal changes
   useEffect(() => {
     if (watch) {
-      // If watch is provided, we're in edit mode
-      // For edit mode, map the brand field back to brand_id
+      // Edit mode
       setFormData({
         brand_id:
           watch.brand && watch.brand._id ? watch.brand._id : watch.brand,
@@ -66,9 +75,17 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
         rental_day_price: watch.rental_day_price || '',
         condition: watch.condition || 'Good',
         quantity: watch.quantity || 5,
+        image_url: watch.image_url || '',
       });
+
+      // Set image preview if there's an image URL
+      if (watch.image_url) {
+        setImagePreview(watch.image_url);
+      } else {
+        setImagePreview(null);
+      }
     } else if (brands.length > 0) {
-      // Reset form for add mode - ensure brand_id is set
+      // Add mode - reset form
       setFormData({
         brand_id: brands[0]._id,
         model: '',
@@ -76,16 +93,55 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
         rental_day_price: '',
         condition: 'Good',
         quantity: 5,
+        image_url: '',
       });
+      setImagePreview(null);
     }
   }, [watch, isOpen, brands]);
 
+  // Validate and check image URL
+  const validateAndCheckImage = async (url) => {
+    setImageError(null);
+
+    // Skip validation for empty URLs
+    if (!url) {
+      setImagePreview(null);
+      return true;
+    }
+
+    // Basic URL validation
+    if (!validateImageUrl(url)) {
+      setImageError('Please enter a valid image URL');
+      setImagePreview(null);
+      return false;
+    }
+
+    try {
+      // Check if image is accessible
+      const isAccessible = await isImageUrlAccessible(url);
+
+      if (isAccessible) {
+        setImagePreview(url);
+        setImageError(null);
+        return true;
+      } else {
+        setImageError('Cannot load image. Please check the URL.');
+        setImagePreview(getImagePlaceholder());
+        return false;
+      }
+    } catch (error) {
+      setImageError('Error checking image URL');
+      setImagePreview(null);
+      return false;
+    }
+  };
+
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // For numeric fields, convert to proper numbers (handle the 0150 vs 150 issue)
+    // Numeric field handling
     if (name === 'year' || name === 'rental_day_price' || name === 'quantity') {
-      // Convert to number - this removes leading zeros
       const numericValue = Number(value);
       setFormData({
         ...formData,
@@ -96,10 +152,16 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
         ...formData,
         [name]: value,
       });
+
+      // Handle image URL change
+      if (name === 'image_url') {
+        validateAndCheckImage(value);
+      }
     }
   };
 
-  const handleSubmit = (e) => {
+  // Submit form handler
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Ensure brand_id is set
@@ -116,7 +178,15 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
       return;
     }
 
-    // Convert numeric strings to actual numbers to avoid issues
+    // Validate image URL if provided
+    if (formData.image_url) {
+      const isValid = await validateAndCheckImage(formData.image_url);
+      if (!isValid) {
+        return;
+      }
+    }
+
+    // Convert numeric strings to actual numbers
     const processedData = {
       ...formData,
       year: Number(formData.year),
@@ -128,12 +198,14 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
     onSave(processedData, watch ? 'edit' : 'add');
   };
 
+  // Toggle brand addition mode
   const toggleAddBrand = () => {
     setIsAddingBrand(!isAddingBrand);
     setNewBrandName('');
     setBrandError(null);
   };
 
+  // Handle new brand creation
   const handleAddBrand = async () => {
     if (!newBrandName.trim()) {
       setBrandError('Brand name cannot be empty');
@@ -166,6 +238,13 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
     }
   };
 
+  // Handle image preview errors
+  const handleImageError = () => {
+    setImagePreview(getImagePlaceholder());
+    setImageError('Failed to load image');
+  };
+
+  // Don't render if modal is closed
   if (!isOpen) return null;
 
   return (
@@ -188,6 +267,7 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
         )}
 
         <form onSubmit={handleSubmit} className="modal-form">
+          {/* Brand Selection */}
           <div className="form-group">
             <label htmlFor="brand_id">Brand</label>
             {loading ? (
@@ -253,6 +333,7 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
             )}
           </div>
 
+          {/* Model Input */}
           <div className="form-group">
             <label htmlFor="model">Model</label>
             <input
@@ -265,6 +346,7 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
             />
           </div>
 
+          {/* Numeric Inputs Row */}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="year">Year</label>
@@ -308,6 +390,7 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
             </div>
           </div>
 
+          {/* Condition Selection */}
           <div className="form-group">
             <label htmlFor="condition">Condition</label>
             <select
@@ -325,6 +408,42 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
             </select>
           </div>
 
+          {/* Image URL Input */}
+          <div className="form-group">
+            <label htmlFor="image_url">Image URL</label>
+            <div className="image-input-container">
+              <input
+                type="text"
+                id="image_url"
+                name="image_url"
+                placeholder="https://example.com/watch-image.jpg"
+                value={formData.image_url}
+                onChange={handleChange}
+              />
+              <div className="image-preview-container">
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Watch preview"
+                    className="image-preview"
+                    onError={handleImageError}
+                  />
+                ) : (
+                  <div className="image-placeholder">
+                    <Upload size={24} />
+                    <span>No image</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            {imageError && <p className="error-text">{imageError}</p>}
+            <p className="help-text">
+              Enter a URL for the watch image. Ensure it's a direct link to an
+              image.
+            </p>
+          </div>
+
+          {/* Form Actions */}
           <div className="form-actions">
             <button
               type="button"

@@ -42,7 +42,11 @@
   align-items: center; /* This centers items vertically */
 }
 
+<<<<<<< HEAD
 .login-btn, .register-btn, .admin-btn, .profile-btn {
+=======
+.login-btn, .register-btn, .admin-btn, .rentals-btn {
+>>>>>>> dev
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -96,6 +100,50 @@
   background-color: #444;
 }
 
+
+/* My Rentals Button */
+.rentals-btn {
+  background-color: #5d6d7e;
+  color: white;
+  padding: 0 16px;
+  border-radius: 4px;
+  line-height: 36px; /* Match the height */
+  gap: 6px;
+}
+
+.rentals-btn:hover {
+  background-color: #4a5b6d;
+}
+
+/* Cart Button */
+.cart-btn {
+  position: relative;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.cart-btn:hover {
+  color: #333;
+}
+
+.cart-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #ff6b6b;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* Welcome message */
 .welcome-message {
@@ -267,8 +315,17 @@
     justify-content: flex-end;
   }
   
+<<<<<<< HEAD
   .admin-btn, .profile-btn {
+=======
+  .admin-btn, .rentals-btn {
+>>>>>>> dev
     order: -1;
     margin-bottom: 5px;
+  }
+  
+  /* Keep cart button visible in mobile */
+  .cart-btn {
+    margin-right: 10px;
   }
 }
