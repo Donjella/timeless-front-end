@@ -6,9 +6,10 @@ import { api } from '../utils/api';
 const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
   // State for form fields
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
-    phone: '',
+    phone_number: '',
     role: 'user',
   });
   const [error, setError] = useState(null);
@@ -19,18 +20,22 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
     if (user) {
       // Populate form with existing user data
       setFormData({
-        name: user.name || '',
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
         email: user.email || '',
-        phone: user.phone || '',
+        phone_number: user.phone_number || '',
         role: user.role || 'user',
       });
     } else {
       // Reset form for new user
       setFormData({
-        name: '',
+        first_name: '',
+        last_name: '',
         email: '',
-        phone: '',
+        phone_number: '',
         role: 'user',
+        // Only include password for new users
+        password: '',
       });
     }
     // Clear any previous errors
@@ -40,7 +45,6 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
   // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -52,8 +56,14 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
     e.preventDefault();
 
     // Basic validation
-    if (!formData.name || !formData.email) {
-      setError('Name and Email are required');
+    if (!formData.first_name || !formData.last_name || !formData.email) {
+      setError('First name, last name, and email are required');
+      return;
+    }
+
+    // For new users, ensure password is provided
+    if (!user && !formData.password) {
+      setError('Password is required for new users');
       return;
     }
 
@@ -61,25 +71,77 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
     setError(null);
 
     try {
+      // Create a copy of formData to avoid modifying the original
+      const dataToSubmit = { ...formData };
+
+      // Don't send password for updates
       if (user) {
-        // Update existing user
-        if (formData.role !== user.role) {
-          // Update user role separately if changed
-          await api.users.updateRole(user._id, formData.role);
-        }
-        await api.users.updateProfile(formData);
-      } else {
-        // Create new user
-        await api.auth.register(formData);
+        delete dataToSubmit.password;
       }
 
-      // Call onSave callback
-      onSave(formData, user ? 'edit' : 'add');
+      if (user) {
+        // 1. First, update the role if it changed (using the specific endpoint)
+        if (formData.role !== user.role) {
+          try {
+            await api.users.updateRole(user._id, formData.role);
+            console.log('Role updated successfully');
+          } catch (roleErr) {
+            console.error('Error updating role:', roleErr);
+          }
+        }
 
-      // Close modal
+        // 2. Update user profile (use PATCH method to updateUserProfile)
+        try {
+          // Only send fields that can be updated in profile
+          const profileData = {
+            first_name: dataToSubmit.first_name,
+            last_name: dataToSubmit.last_name,
+            phone_number: dataToSubmit.phone_number,
+          };
+
+          await api.users.updateProfile(profileData);
+          console.log('Submitting profileData:', profileData);
+          console.log('Profile updated successfully');
+        } catch (profileErr) {
+          console.error('Error updating profile:', profileErr);
+          throw profileErr; // Rethrow to be caught by outer catch
+        }
+      } else {
+        // For new users, use registration endpoint with all fields
+        await api.auth.register(dataToSubmit);
+      }
+
+      // Construct updated user data for UI refresh
+      const updatedUserData = user
+        ? {
+            ...user,
+            first_name: dataToSubmit.first_name,
+            last_name: dataToSubmit.last_name,
+            phone_number: dataToSubmit.phone_number,
+            role: dataToSubmit.role,
+          }
+        : dataToSubmit;
+
+      // Call onSave callback to update UI
+      onSave(updatedUserData, user ? 'edit' : 'add');
       onClose();
     } catch (err) {
-      setError(api.utils.formatErrorMessage(err));
+      console.error('Form submission error:', err);
+
+      // Improve error handling
+      let errorMessage = 'An error occurred while saving the user';
+
+      if (err.message) {
+        errorMessage = err.message;
+      } else if (err.status === 0) {
+        errorMessage = 'Network error. Please check your connection.';
+      } else if (err.status === 403) {
+        errorMessage = 'You do not have permission to perform this action.';
+      } else if (err.status === 400) {
+        errorMessage = 'Invalid data provided. Please check your inputs.';
+      }
+
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -89,224 +151,105 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
   if (!isOpen) return null;
 
   return (
-    <div
-      className="modal-overlay"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 9999,
-      }}
-    >
-      <div
-        className="modal-container user-modal"
-        style={{
-          backgroundColor: '#fff',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-          width: '100%',
-          maxWidth: '500px',
-          maxHeight: '90vh',
-          overflow: 'auto',
-          position: 'relative',
-        }}
-      >
-        <div
-          className="modal-header"
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '16px 20px',
-            borderBottom: '1px solid #eaeaea',
-          }}
-        >
-          <h2 style={{ margin: 0, fontSize: '20px', color: '#333' }}>
-            {user ? 'Edit User' : 'Add New User'}
-          </h2>
-          <button
-            className="btn-close"
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#666',
-              padding: '4px',
-            }}
-          >
+    <div className="modal-overlay">
+      <div className="modal-container user-modal">
+        <div className="modal-header">
+          <h2>{user ? 'Edit User' : 'Add New User'}</h2>
+          <button className="btn-close" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="modal-form"
-          style={{ padding: '20px' }}
-        >
-          {error && (
-            <div
-              className="error-text"
-              style={{
-                color: '#e53935',
-                marginBottom: '16px',
-                padding: '10px',
-                backgroundColor: '#ffebee',
-                borderRadius: '4px',
-              }}
-            >
-              {error}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} className="modal-form">
+          {error && <div className="error-text">{error}</div>}
 
-          <div className="form-group" style={{ marginBottom: '16px' }}>
-            <label
-              htmlFor="name"
-              style={{
-                display: 'block',
-                marginBottom: '8px',
-                fontWeight: '500',
-                color: '#555',
-              }}
-            >
-              Full Name
-            </label>
+          <div className="form-group">
+            <label htmlFor="first_name">First Name</label>
             <input
               type="text"
-              id="name"
-              name="name"
-              value={formData.name}
+              id="first_name"
+              name="first_name"
+              value={formData.first_name}
               onChange={handleChange}
+              placeholder="First Name"
               required
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '16px',
-              }}
             />
           </div>
 
-          <div className="form-group" style={{ marginBottom: '16px' }}>
-            <label
-              htmlFor="email"
-              style={{
-                display: 'block',
-                marginBottom: '8px',
-                fontWeight: '500',
-                color: '#555',
-              }}
-            >
-              Email
-            </label>
+          <div className="form-group">
+            <label htmlFor="last_name">Last Name</label>
+            <input
+              type="text"
+              id="last_name"
+              name="last_name"
+              value={formData.last_name}
+              onChange={handleChange}
+              placeholder="Last Name"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
             <input
               type="email"
               id="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
+              placeholder="Email Address"
               required
               disabled={!!user}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '16px',
-                backgroundColor: !!user ? '#f5f5f5' : '#fff',
-              }}
+              className={user ? 'disabled' : ''}
             />
           </div>
 
-          <div className="form-group" style={{ marginBottom: '16px' }}>
-            <label
-              htmlFor="phone"
-              style={{
-                display: 'block',
-                marginBottom: '8px',
-                fontWeight: '500',
-                color: '#555',
-              }}
-            >
-              Phone Number
-            </label>
+          {!user && (
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password || ''}
+                onChange={handleChange}
+                placeholder="Password (minimum 6 characters)"
+                required={!user}
+              />
+            </div>
+          )}
+
+          <div className="form-group">
+            <label htmlFor="phone_number">Phone Number</label>
             <input
               type="tel"
-              id="phone"
-              name="phone"
-              value={formData.phone}
+              id="phone_number"
+              name="phone_number"
+              value={formData.phone_number}
               onChange={handleChange}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '16px',
-              }}
+              placeholder="Phone Number"
             />
           </div>
 
-          <div className="form-group" style={{ marginBottom: '16px' }}>
-            <label
-              htmlFor="role"
-              style={{
-                display: 'block',
-                marginBottom: '8px',
-                fontWeight: '500',
-                color: '#555',
-              }}
-            >
-              User Role
-            </label>
+          <div className="form-group">
+            <label htmlFor="role">User Role</label>
             <select
               id="role"
               name="role"
               value={formData.role}
               onChange={handleChange}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '16px',
-              }}
             >
               <option value="user">User</option>
               <option value="admin">Admin</option>
             </select>
           </div>
 
-          <div
-            className="modal-footer"
-            style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '12px',
-              marginTop: '24px',
-            }}
-          >
+          <div className="modal-footer">
             <button
               type="button"
               className="btn btn-secondary"
               onClick={onClose}
               disabled={isLoading}
-              style={{
-                padding: '10px 16px',
-                borderRadius: '4px',
-                fontWeight: '500',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                backgroundColor: '#f5f5f5',
-                color: '#333',
-                border: 'none',
-                opacity: isLoading ? 0.6 : 1,
-              }}
             >
               Cancel
             </button>
@@ -314,16 +257,6 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
               type="submit"
               className="btn btn-primary"
               disabled={isLoading}
-              style={{
-                padding: '10px 16px',
-                borderRadius: '4px',
-                fontWeight: '500',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                backgroundColor: '#4a90e2',
-                color: 'white',
-                border: 'none',
-                opacity: isLoading ? 0.6 : 1,
-              }}
             >
               {isLoading ? 'Saving...' : user ? 'Update User' : 'Add User'}
             </button>
@@ -341,9 +274,10 @@ UserModal.propTypes = {
   onSave: PropTypes.func.isRequired,
   user: PropTypes.shape({
     _id: PropTypes.string,
-    name: PropTypes.string,
+    first_name: PropTypes.string,
+    last_name: PropTypes.string,
     email: PropTypes.string,
-    phone: PropTypes.string,
+    phone_number: PropTypes.string,
     role: PropTypes.string,
   }),
 };

@@ -169,6 +169,33 @@ export const api = {
         headers: createHeaders(),
       }),
 
+    // Add this function for creating users
+    create: (userData) =>
+      fetchWrapper('/api/users', {
+        method: 'POST',
+        headers: createHeaders(),
+        body: JSON.stringify(userData),
+      }),
+
+    // Add this general update function
+    update: (id, userData) => {
+      // If we're only updating the role, use the specific role endpoint
+      if (Object.keys(userData).length === 1 && userData.role) {
+        return fetchWrapper(`/api/users/role/${id}`, {
+          method: 'PATCH',
+          headers: createHeaders(),
+          body: JSON.stringify({ role: userData.role }),
+        });
+      }
+
+      // For other updates, use the general user update endpoint
+      return fetchWrapper(`/api/users/${id}`, {
+        method: 'PUT',
+        headers: createHeaders(),
+        body: JSON.stringify(userData),
+      });
+    },
+
     updateRole: (id, role) =>
       fetchWrapper(`/api/users/role/${id}`, {
         method: 'PATCH',
@@ -176,9 +203,10 @@ export const api = {
         body: JSON.stringify({ role }),
       }),
 
+    // ✅ Changed from PUT to PATCH to match backend
     updateProfile: (userData) =>
       fetchWrapper('/api/users/profile', {
-        method: 'PUT',
+        method: 'PATCH',
         headers: createHeaders(),
         body: JSON.stringify(userData),
       }),

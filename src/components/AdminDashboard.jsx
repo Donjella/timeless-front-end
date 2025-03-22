@@ -342,6 +342,7 @@ const AdminDashboard = () => {
     setIsUserModalOpen(true);
   };
 
+  // Fixed handleSaveUser function for the AdminDashboard component
   const handleSaveUser = async (userData, mode) => {
     if (!userData) {
       setError('No user data provided');
@@ -353,15 +354,64 @@ const AdminDashboard = () => {
 
     try {
       if (mode === 'add') {
-        await api.users.create(userData);
-        setUsers([...users, userData]);
+        // For new users, use registration endpoint
+        const newUser = await api.auth.register(userData);
+        if (newUser) {
+          setUsers([...users, newUser]);
+        }
       } else if (mode === 'edit' && currentUser) {
-        await api.users.update(currentUser._id, userData);
+        // For updating existing users
+
+        // 1. First handle role update if changed
+        if (userData.role !== currentUser.role) {
+          try {
+            await api.users.updateRole(currentUser._id, userData.role);
+            console.log('Role updated successfully');
+          } catch (roleErr) {
+            console.error('Error updating role:', roleErr);
+            // Continue with other updates even if role update fails
+          }
+        }
+
+        // 2. Update profile information
+        try {
+          // Only send fields that can be updated via the profile endpoint
+          const profileData = {
+            first_name: userData.first_name,
+            last_name: userData.last_name,
+            phone_number: userData.phone_number,
+          };
+
+          await api.users.updateProfile(profileData);
+        } catch (profileErr) {
+          console.error('Error updating profile:', profileErr);
+          setError(
+            `Failed to update user: ${profileErr.message || 'Unknown error'}`
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        // Create an updated user object for the UI
+        const updatedUser = {
+          ...currentUser,
+          first_name: userData.first_name,
+          last_name: userData.last_name,
+          phone_number: userData.phone_number,
+          role: userData.role,
+        };
+
+        // Update the users array
         setUsers(
           users.map((user) =>
-            user._id === currentUser._id ? { ...user, ...userData } : user
+            user._id === currentUser._id ? updatedUser : user
           )
         );
+
+        // Also update searchedUser if it's the same user being edited
+        if (searchedUser && searchedUser._id === currentUser._id) {
+          setSearchedUser(updatedUser);
+        }
       } else {
         throw new Error('Invalid mode or missing user data');
       }
@@ -370,8 +420,17 @@ const AdminDashboard = () => {
       setCurrentUser(null);
     } catch (err) {
       console.error('Error saving user:', err);
+
+      // Improve error message
+      let errorMessage = err.message || 'Unknown error';
+      if (err.status === 0) {
+        errorMessage = 'Network error. Please check your connection.';
+      } else if (err.status === 403) {
+        errorMessage = 'You do not have permission to perform this action.';
+      }
+
       setError(
-        `Failed to ${mode === 'add' ? 'create' : 'update'} user: ${err.message || 'Unknown error'}`
+        `Failed to ${mode === 'add' ? 'create' : 'update'} user: ${errorMessage}`
       );
     } finally {
       setIsLoading(false);
