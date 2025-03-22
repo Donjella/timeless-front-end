@@ -353,13 +353,7 @@ const AdminDashboard = () => {
     setError(null);
 
     try {
-      if (mode === 'add') {
-        // For new users, use registration endpoint
-        const newUser = await api.auth.register(userData);
-        if (newUser) {
-          setUsers([...users, newUser]);
-        }
-      } else if (mode === 'edit' && currentUser) {
+      if (mode === 'edit' && currentUser) {
         // For updating existing users
 
         // 1. First handle role update if changed
@@ -429,9 +423,7 @@ const AdminDashboard = () => {
         errorMessage = 'You do not have permission to perform this action.';
       }
 
-      setError(
-        `Failed to ${mode === 'add' ? 'create' : 'update'} user: ${errorMessage}`
-      );
+      setError(`Failed to update user: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -578,16 +570,6 @@ const AdminDashboard = () => {
                   Search
                 </button>
               </div>
-              <button
-                className="btn btn-primary btn-add"
-                onClick={() => {
-                  setCurrentUser(null);
-                  setIsUserModalOpen(true);
-                }}
-                disabled={isLoading}
-              >
-                <Plus size={18} /> Add User
-              </button>
             </div>
 
             {error && (

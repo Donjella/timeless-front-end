@@ -33,7 +33,6 @@ export function Register() {
       [name]: value,
     });
 
-    // Clear field-specific error when user types
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -45,7 +44,6 @@ export function Register() {
   const validateForm = () => {
     const newErrors = {};
 
-    // Required fields from your API
     if (!formData.first_name.trim())
       newErrors.first_name = 'First name is required';
     if (!formData.last_name.trim())
@@ -62,7 +60,15 @@ export function Register() {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    // Address validation (required per your backend)
+    // ✅ Phone number validation (optional but must be valid if provided)
+    if (formData.phone_number.trim()) {
+      const phoneRegex = /^(?:\+614|04)\d{8}$/;
+      if (!phoneRegex.test(formData.phone_number.trim())) {
+        newErrors.phone_number =
+          'Please enter a valid Australian mobile number (e.g. 0400000000 or +61400000000)';
+      }
+    }
+
     if (!formData.street_address.trim())
       newErrors.street_address = 'Street address is required';
     if (!formData.suburb.trim()) newErrors.suburb = 'Suburb is required';
@@ -81,17 +87,11 @@ export function Register() {
       setIsSubmitting(true);
 
       try {
-        // confirmPassword not needed in the API
         const { confirmPassword: _confirmPassword, ...registrationData } =
           formData;
 
-        // Use our API utility to register
         const userData = await api.auth.register(registrationData);
-
-        // Login the user with our auth context
         login(userData);
-
-        // Redirect to home page after successful registration
         navigate('/');
       } catch (error) {
         console.error('Registration error:', error);
@@ -114,7 +114,7 @@ export function Register() {
 
         <form onSubmit={handleSubmit} className="register-form">
           <div className="form-grid">
-            {/* Personal Information */}
+            {/* Personal Info */}
             <div className="form-section">
               <h2 className="section-title">Personal Information</h2>
 
@@ -174,7 +174,11 @@ export function Register() {
                     name="phone_number"
                     value={formData.phone_number}
                     onChange={handleChange}
+                    className={errors.phone_number ? 'input-error' : ''}
                   />
+                  {errors.phone_number && (
+                    <span className="error">{errors.phone_number}</span>
+                  )}
                 </div>
               </div>
 
@@ -211,7 +215,7 @@ export function Register() {
               </div>
             </div>
 
-            {/* Address Information */}
+            {/* Address Info */}
             <div className="form-section">
               <h2 className="section-title">Address Information</h2>
 
