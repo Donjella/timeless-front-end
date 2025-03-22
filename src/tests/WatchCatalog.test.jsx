@@ -283,6 +283,6 @@ const localStorageMock = (() => {
       
       // Enter search term
       const searchInput = screen.getByPlaceholderText('Search watches...');
-      fireEvent.change(searchInput, { target: { value: 'submariner' } });
-      
-  
+        fireEvent.change(searchInput, { target: { value: 'submariner' } });
+      });
+    });
