@@ -79,12 +79,20 @@ const fetchWrapper = async (endpoint, options) => {
 
     // Handle 401 errors specially
     if (response.status === 401) {
-      // Token expired or invalid, clear auth
-      localStorage.removeItem('auth');
-      throw {
-        status: 401,
-        message: 'Your session has expired. Please log in again.',
-      };
+      // If this is a login attempt, it means invalid credentials
+      if (endpoint === '/api/users/login') {
+        throw {
+          status: 401,
+          message: 'Invalid email or password. Please try again.',
+        };
+      } else {
+        // For other endpoints, it likely means expired token
+        localStorage.removeItem('auth');
+        throw {
+          status: 401,
+          message: 'Your session has expired. Please log in again.',
+        };
+      }
     }
 
     const data = await response.json();

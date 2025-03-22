@@ -1,6 +1,7 @@
 ## Table of Contents
 
 - [Important Links](#important-links)
+- [Test Accounts](#test-accounts)
 - [Overview](#overview)
 - [Technologies Used (Frontend)](#technologies-used-frontend)
   - [Core Dependencies](#core-dependencies)
@@ -22,6 +23,17 @@
 - 🔗 **Live Deployment**: [https://timeless-front-end.netlify.app/](https://timeless-front-end.netlify.app/)
 - 🖥️ **Local Development**: http://localhost:5173 (or another available port such as 5174, depending on your local setup)
 - 🌐 **Backend API**: [https://timeless-back-end.onrender.com/](https://timeless-back-end.onrender.com/) _(If the app fails to load, it may be due to cold start delays on Render)_
+
+---
+
+## Test Accounts
+
+Use these accounts to quickly test the application with different user roles:
+
+| Role | Email | Password |
+|------|-------|----------|
+| 👑 **Admin** | admin@timeless.com | Admin123 |
+| 👤 **Customer** | customer@example.com | TestUser |
 
 ---
 
