@@ -544,5 +544,73 @@ const localStorageMock = (() => {
       expect(screen.getByText('Edit')).toBeInTheDocument();
       expect(screen.getByText('Delete')).toBeInTheDocument();
     });
-    
+   
+    describe('edge Cases', () => {
+      it('should handle empty watches array', async () => {
+        // mock empty watches data
+        api.watches.getAll.mockResolvedValue([]);
+        
+        render(
+          <BrowserRouter>
+            <WatchCatalog />
+          </BrowserRouter>
+        );
+        
+        // wait for data to load
+        await waitFor(() => {
+          expect(screen.queryByText('Loading watches...')).not.toBeInTheDocument();
+        });
+        
+        // should show no results message
+        expect(screen.getByText('No watches found matching your criteria.')).toBeInTheDocument();
+      });
+      
+      it('should handle watches with missing data', async () => {
+        // mock watches with incomplete data
+        const incompleteWatches = [
+          {
+            _id: 'watch4',
+            model: 'Unknown Model',
+            rental_day_price: 50,
+          },
+        ];
+        
+        api.watches.getAll.mockResolvedValue(incompleteWatches);
+        
+        render(
+          <BrowserRouter>
+            <WatchCatalog />
+          </BrowserRouter>
+        );
+        
+        // wait for data 
+        await waitFor(() => {
+          expect(screen.queryByText('Loading watches...')).not.toBeInTheDocument();
+        });
+        
+        // should handle missing brand name 
+        expect(screen.getByText('Watch Unknown Model')).toBeInTheDocument();
+      });
+      
+      it('should handle API failures', async () => {
+        // mock api fail
+        api.watches.getAll.mockRejectedValue(new Error('Network error'));
+        
+        render(
+          <BrowserRouter>
+            <WatchCatalog />
+          </BrowserRouter>
+        );
+        
+        // should show error message
+        await waitFor(() => {
+          expect(screen.getByText('Connection Error')).toBeInTheDocument();
+          expect(screen.getByText(/Failed to fetch data/)).toBeInTheDocument();
+        });
+        
+        // should show retry button
+        expect(screen.getByRole('button', { name: /retry connection/i })).toBeInTheDocument();
+      });
+    });
+   
   });
