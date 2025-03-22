@@ -118,3 +118,155 @@ vi.mock('lucide-react', () => ({
 const originalDispatchEvent = window.dispatchEvent;
 window.dispatchEvent = vi.fn();
 
+describe('Checkout Component', () => {
+    // mock data
+    const mockWatchItem = {
+      watchId: 'watch1',
+      watch: {
+        _id: 'watch1',
+        brand: { _id: 'brand1', brand_name: 'Rolex' },
+        model: 'Submariner',
+        year: 2022,
+        rental_day_price: 100,
+        condition: 'Excellent',
+        quantity: 3,
+        image_url: 'https://example.com/watch1.jpg',
+      },
+    };
+  
+    const mockRental = {
+      _id: 'rental1',
+      watch: {
+        _id: 'watch1',
+        brand: { _id: 'brand1', brand_name: 'Rolex' },
+        model: 'Submariner',
+        year: 2022,
+        rental_day_price: 100,
+        condition: 'Excellent',
+        quantity: 3,
+        image_url: 'https://example.com/watch1.jpg',
+      },
+      rental_start_date: '2023-01-01T00:00:00.000Z',
+      rental_end_date: '2023-01-08T00:00:00.000Z',
+      total_rental_price: 700,
+      isPaid: false,
+    };
+  
+    // reset mock clear storage
+    beforeEach(() => {
+      vi.clearAllMocks();
+      window.localStorage.clear();
+      window.sessionStorage.clear();
+      
+
+      vi.mocked(useLocation).mockReturnValue({
+        pathname: '/checkout',
+        search: '',
+        hash: '',
+        state: null,
+      });
+      
+      const navigateMock = vi.fn();
+      vi.mocked(useNavigate).mockReturnValue(navigateMock);
+      
+      // setup storage data 
+      localStorage.setItem(
+        'auth',
+        JSON.stringify({
+          token: 'mock-token',
+          user: {
+            _id: 'user1',
+            role: 'user',
+          },
+        })
+      );
+      
+      sessionStorage.setItem(
+        'checkoutItems',
+        JSON.stringify([mockWatchItem])
+      );
+  
+      // default api mock
+      api.rentals.create.mockResolvedValue({
+        _id: 'rental1',
+        watch: mockWatchItem.watch,
+        rental_start_date: '2023-01-01T00:00:00.000Z',
+        rental_end_date: '2023-01-08T00:00:00.000Z',
+        total_rental_price: 700,
+      });
+      
+      api.rentals.getById.mockResolvedValue(mockRental);
+      
+      api.payments.create.mockResolvedValue({
+        _id: 'payment1',
+        rental_id: 'rental1',
+        amount: 700,
+        payment_method: 'Credit Card',
+        payment_status: 'Completed',
+      });
+    });
+  
+    afterAll(() => {
+      window.dispatchEvent = originalDispatchEvent;
+    });
+    
+    // 
+    it('should redirect unauthenticated users to login page', () => {
+      // clear auth data
+      localStorage.clear();
+      
+      const navigateMock = vi.fn();
+      vi.mocked(useNavigate).mockReturnValue(navigateMock);
+      
+      render(
+        <BrowserRouter>
+          <Checkout />
+        </BrowserRouter>
+      );
+      
+      expect(navigateMock).toHaveBeenCalledWith('/login?redirect=/checkout');
+    });
+    
+   
+    it('should load checkout items and display product information', async () => {
+      render(
+        <BrowserRouter>
+          <Checkout />
+        </BrowserRouter>
+      );
+      
+      await waitFor(() => {
+        expect(screen.getByText('Rolex Submariner')).toBeInTheDocument();
+        expect(screen.getByText(/\$100\/day/)).toBeInTheDocument();
+        expect(screen.getByText(/7 days x/)).toBeInTheDocument();
+      });
+    });
+    
+    
+    it('should update rental dates and recalculate total price', async () => {
+      render(
+        <BrowserRouter>
+          <Checkout />
+        </BrowserRouter>
+      );
+      
+      await waitFor(() => {
+        expect(screen.getByText('Rolex Submariner')).toBeInTheDocument();
+      });
+      
+      // date inputs
+      const startDateInput = screen.getByLabelText('Start Date:');
+      const endDateInput = screen.getByLabelText('End Date:');
+      
+      // changing rental dates
+      fireEvent.change(startDateInput, { target: { value: '2023-05-01' } });
+      fireEvent.change(endDateInput, { target: { value: '2023-05-11' } });
+      
+      // New duration should be 10 days
+      await waitFor(() => {
+        expect(screen.getByText(/10 days x/)).toBeInTheDocument();
+        // Total should be 10 * $100 = $1000
+        expect(screen.getByText('$1000.00')).toBeInTheDocument();
+      });
+    });
+});
