@@ -262,11 +262,103 @@ describe('Checkout Component', () => {
       fireEvent.change(startDateInput, { target: { value: '2023-05-01' } });
       fireEvent.change(endDateInput, { target: { value: '2023-05-11' } });
       
-      // New duration should be 10 days
+      // New duration 10 days
       await waitFor(() => {
         expect(screen.getByText(/10 days x/)).toBeInTheDocument();
-        // Total should be 10 * $100 = $1000
+        // Total 10 * $100 = $1000
         expect(screen.getByText('$1000.00')).toBeInTheDocument();
       });
     });
+    
+    it('should handle direct rental mode for existing rental', async () => {
+        vi.mocked(useLocation).mockReturnValue({
+        pathname: '/checkout',
+        search: '?rental=rental1',
+        hash: '',
+        state: null,
+        });
+        
+        render(
+        <BrowserRouter>
+            <Checkout />
+        </BrowserRouter>
+        );
+        
+        await waitFor(() => {
+        expect(api.rentals.getById).toHaveBeenCalledWith('rental1');
+        expect(screen.getByText('Complete Payment')).toBeInTheDocument();
+        
+        // dates shouldn't be editable
+        const dateInputs = screen.queryAllByRole('date');
+        expect(dateInputs.length).toBe(0);
+        });
+    });
+    
+    
+    it('should validate credit card form with proper errors', async () => {
+        render(
+        <BrowserRouter>
+            <Checkout />
+        </BrowserRouter>
+        );
+        
+        await waitFor(() => {
+        expect(screen.getByText('Payment Method')).toBeInTheDocument();
+        });
+        
+        // Try submit with empty form
+        const payButton = screen.getByRole('button', { name: /Pay/ });
+        fireEvent.click(payButton);
+        
+        // show validation errors
+        await waitFor(() => {
+        expect(screen.getByText('Please enter a valid card number')).toBeInTheDocument();
+        expect(screen.getByText('Please enter the cardholder name')).toBeInTheDocument();
+        expect(screen.getByText('Please enter a valid expiry date (MM/YY)')).toBeInTheDocument();
+        expect(screen.getByText('Please enter a valid CVV')).toBeInTheDocument();
+        });
+        
+        // Fill form with valid data
+        fireEvent.change(screen.getByLabelText('Card Number'), { target: { value: '4111 1111 1111 1111' } });
+        fireEvent.change(screen.getByLabelText('Cardholder Name'), { target: { value: 'John Doe' } });
+        fireEvent.change(screen.getByLabelText('Expiry Date'), { target: { value: '12/25' } });
+        fireEvent.change(screen.getByLabelText('CVV'), { target: { value: '123' } });
+        
+        // Try submit again
+        fireEvent.click(payButton);
+        
+        // Should not show validation errors 
+        await waitFor(() => {
+        expect(screen.queryByText('Please enter a valid card number')).not.toBeInTheDocument();
+        });
+    });
+    
+ 
+    it('should detect expired credit cards', async () => {
+        render(
+        <BrowserRouter>
+            <Checkout />
+        </BrowserRouter>
+        );
+        
+        await waitFor(() => {
+        expect(screen.getByText('Payment Method')).toBeInTheDocument();
+        });
+        
+        // form with expired card
+        fireEvent.change(screen.getByLabelText('Card Number'), { target: { value: '4111 1111 1111 1111' } });
+        fireEvent.change(screen.getByLabelText('Cardholder Name'), { target: { value: 'John Doe' } });
+        fireEvent.change(screen.getByLabelText('Expiry Date'), { target: { value: '01/20' } }); 
+        fireEvent.change(screen.getByLabelText('CVV'), { target: { value: '123' } });
+        
+        // Try submit
+        const payButton = screen.getByRole('button', { name: /Pay/ });
+        fireEvent.click(payButton);
+        
+        // show expired card error
+        await waitFor(() => {
+        expect(screen.getByText('Card has expired')).toBeInTheDocument();
+        });
+    });
+
 });
