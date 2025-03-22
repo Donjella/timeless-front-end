@@ -19,7 +19,7 @@ const WatchCatalog = () => {
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [brandFilters, setBrandFilters] = useState({});
-  const [priceValue, setPriceValue] = useState(0);
+  const [priceValue, setPriceValue] = useState(null);
   const [maxPrice, setMaxPrice] = useState(150);
   const [conditionFilter, setConditionFilter] = useState('Any');
 
@@ -46,7 +46,6 @@ const WatchCatalog = () => {
 
   // Fetch watches and brands on component mount
   useEffect(() => {
-    // Flag to prevent state updates if component unmounts during API call
     let isMounted = true;
 
     const fetchData = async () => {
@@ -55,40 +54,28 @@ const WatchCatalog = () => {
       setLoading(true);
       setError(null);
 
-      // Set a timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
         if (isMounted) {
           setError('Request timed out. The server may be unavailable.');
           setLoading(false);
           setApiConnectionFailed(true);
         }
-      }, 15000); // 15 second timeout
+      }, 15000);
 
       try {
-        // Fetch both watches and brands in parallel
         const [watchesData, brandsData] = await Promise.all([
-          api.watches.getAll().catch((err) => {
-            console.error('Error fetching watches:', err);
-            throw err;
-          }),
-          api.brands.getAll().catch((err) => {
-            console.error('Error fetching brands:', err);
-            throw err;
-          }),
+          api.watches.getAll(),
+          api.brands.getAll(),
         ]);
 
-        // Clear timeout as request succeeded
         clearTimeout(timeoutId);
 
         if (!isMounted) return;
 
-        // Check if the data is valid
         if (!Array.isArray(watchesData) || !Array.isArray(brandsData)) {
-          console.error('Invalid data format:', { watchesData, brandsData });
           throw new Error('Invalid data format received from server');
         }
 
-        // Initialize brand filters
         const initialBrandFilters = {};
         brandsData.forEach((brand) => {
           if (brand && brand._id) {
@@ -101,19 +88,18 @@ const WatchCatalog = () => {
           setBrands(brandsData);
           setBrandFilters(initialBrandFilters);
 
-          // Find max price for range input
           if (watchesData.length > 0) {
             const highestPrice = Math.max(
               ...watchesData.map((w) => w.rental_day_price || 0)
             );
-            setMaxPrice(highestPrice || 150);
+            setMaxPrice(highestPrice);
+            setPriceValue(highestPrice);
           }
 
           setApiConnectionFailed(false);
         }
       } catch (err) {
         clearTimeout(timeoutId);
-
         if (isMounted) {
           console.error('Error in fetchData:', err);
           setError(`Failed to fetch data: ${err.message || 'Unknown error'}`);
@@ -128,11 +114,10 @@ const WatchCatalog = () => {
 
     fetchData();
 
-    // Cleanup function to prevent state updates after unmount
     return () => {
       isMounted = false;
     };
-  }, []); // Empty dependency array - only run on mount
+  }, []);
 
   // Handle watch creation or update (for admin)
   const handleSaveWatch = async (watchData, mode) => {
