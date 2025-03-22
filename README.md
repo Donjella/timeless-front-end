@@ -15,6 +15,7 @@
   - [Prettier Formatting](#prettier-formatting)
   - [Editor Setup](#editor-setup)
 - [Project Setup Instructions](#project-setup-instructions)
+- [Image Credits](#image-credits)
 
 ---
 
@@ -392,3 +393,17 @@ npm run build
 npm run preview
 ```
 > Useful for local testing before deployment.
+
+---
+
+## Image Credits
+
+The following images are used in the application with credits to their original sources:
+
+| Watch Model | Image Source |
+|-------------|--------------|
+| Rolex Submariner | [Watchfinder & Co.](https://images.watchfinder.co.uk/imgv3/stock/317622/Rolex-Submariner-16800-317622-241128-165654.jpg) |
+| Omega Speedmaster Moonwatch | [Monochrome Watches](https://monochrome-watches.com/wp-content/uploads/2021/01/2021-Omega-Speedmaster-Moonwatch-Professional-Master-Chronometer-Hesalite-textile-strap.jpg) |
+| Tag Heuer Carrera Chronograph | [Watchfinder & Co.](https://images.watchfinder.co.uk/imgv3/stock/321130/TagHeuer-Carrera-CV2A1V.BA0738-321130-241121-135810.jpg) |
+
+*All images remain the property of their respective copyright holders and are used for demonstration purposes only.*
