@@ -262,10 +262,10 @@ describe('Checkout Component', () => {
       fireEvent.change(startDateInput, { target: { value: '2023-05-01' } });
       fireEvent.change(endDateInput, { target: { value: '2023-05-11' } });
       
-      // New duration 10 days
+      // new duration 10 days
       await waitFor(() => {
         expect(screen.getByText(/10 days x/)).toBeInTheDocument();
-        // Total 10 * $100 = $1000
+        // total 10 * $100 = $1000
         expect(screen.getByText('$1000.00')).toBeInTheDocument();
       });
     });
@@ -306,7 +306,7 @@ describe('Checkout Component', () => {
         expect(screen.getByText('Payment Method')).toBeInTheDocument();
         });
         
-        // Try submit with empty form
+        // try submit with empty form
         const payButton = screen.getByRole('button', { name: /Pay/ });
         fireEvent.click(payButton);
         
@@ -318,16 +318,16 @@ describe('Checkout Component', () => {
         expect(screen.getByText('Please enter a valid CVV')).toBeInTheDocument();
         });
         
-        // Fill form with valid data
+        // fill form with valid data
         fireEvent.change(screen.getByLabelText('Card Number'), { target: { value: '4111 1111 1111 1111' } });
         fireEvent.change(screen.getByLabelText('Cardholder Name'), { target: { value: 'John Doe' } });
         fireEvent.change(screen.getByLabelText('Expiry Date'), { target: { value: '12/25' } });
         fireEvent.change(screen.getByLabelText('CVV'), { target: { value: '123' } });
         
-        // Try submit again
+        // try submit again
         fireEvent.click(payButton);
         
-        // Should not show validation errors 
+        // should not show validation errors 
         await waitFor(() => {
         expect(screen.queryByText('Please enter a valid card number')).not.toBeInTheDocument();
         });
@@ -351,13 +351,123 @@ describe('Checkout Component', () => {
         fireEvent.change(screen.getByLabelText('Expiry Date'), { target: { value: '01/20' } }); 
         fireEvent.change(screen.getByLabelText('CVV'), { target: { value: '123' } });
         
-        // Try submit
+        // try submit
         const payButton = screen.getByRole('button', { name: /Pay/ });
         fireEvent.click(payButton);
         
         // show expired card error
         await waitFor(() => {
         expect(screen.getByText('Card has expired')).toBeInTheDocument();
+        });
+    });
+
+   
+    it('should create rentals and payments on successful checkout', async () => {
+        render(
+        <BrowserRouter>
+            <Checkout />
+        </BrowserRouter>
+        );
+        
+        await waitFor(() => {
+        expect(screen.getByText('Payment Method')).toBeInTheDocument();
+        });
+        
+        // fill form 
+        fireEvent.change(screen.getByLabelText('Card Number'), { target: { value: '4111 1111 1111 1111' } });
+        fireEvent.change(screen.getByLabelText('Cardholder Name'), { target: { value: 'John Doe' } });
+        fireEvent.change(screen.getByLabelText('Expiry Date'), { target: { value: '12/25' } });
+        fireEvent.change(screen.getByLabelText('CVV'), { target: { value: '123' } });
+        
+        // submit form
+        const payButton = screen.getByRole('button', { name: /Pay/ });
+        fireEvent.click(payButton);
+        
+        // should show processing state
+        await waitFor(() => {
+        expect(screen.getByText('Processing...')).toBeInTheDocument();
+        });
+        
+        // should create rental and payment
+        await waitFor(() => {
+        expect(api.rentals.create).toHaveBeenCalled();
+        expect(api.payments.create).toHaveBeenCalled();
+        });
+        
+        // should clear cart
+        await waitFor(() => {
+        expect(sessionStorage.removeItem).toHaveBeenCalledWith('checkoutItems');
+        expect(window.dispatchEvent).toHaveBeenCalled();
+        });
+        
+        // should show success page
+        await waitFor(() => {
+        expect(screen.getByText('Order Confirmed!')).toBeInTheDocument();
+        });
+    });
+    
+    
+    it('should handle API errors during checkout properly', async () => {
+        // mock api error
+        api.rentals.create.mockRejectedValue(new Error('Failed to create rental'));
+        
+        render(
+        <BrowserRouter>
+            <Checkout />
+        </BrowserRouter>
+        );
+        
+        await waitFor(() => {
+        expect(screen.getByText('Payment Method')).toBeInTheDocument();
+        });
+        
+        // fill form 
+        fireEvent.change(screen.getByLabelText('Card Number'), { target: { value: '4111 1111 1111 1111' } });
+        fireEvent.change(screen.getByLabelText('Cardholder Name'), { target: { value: 'John Doe' } });
+        fireEvent.change(screen.getByLabelText('Expiry Date'), { target: { value: '12/25' } });
+        fireEvent.change(screen.getByLabelText('CVV'), { target: { value: '123' } });
+        
+        // submit form
+        const payButton = screen.getByRole('button', { name: /Pay/ });
+        fireEvent.click(payButton);
+        
+        // should show error message
+        await waitFor(() => {
+        expect(screen.getByText(/Failed to process your order/)).toBeInTheDocument();
+        });
+    });
+
+    
+    it('should handle PayPal payment method correctly', async () => {
+        render(
+        <BrowserRouter>
+            <Checkout />
+        </BrowserRouter>
+        );
+        
+        await waitFor(() => {
+        expect(screen.getByText('Payment Method')).toBeInTheDocument();
+        });
+        
+        // switch to PayPal
+        const paypalRadio = screen.getByLabelText('PayPal');
+        fireEvent.click(paypalRadio);
+        
+        // credit card form hidden, PayPal info visible
+        expect(screen.queryByLabelText('Card Number')).not.toBeInTheDocument();
+        expect(screen.getByText(/You will be redirected to PayPal/)).toBeInTheDocument();
+        
+        // submit form with PayPal
+        const payButton = screen.getByRole('button', { name: /Pay/ });
+        fireEvent.click(payButton);
+        
+        // should call api with PayPal payment method
+        await waitFor(() => {
+        expect(api.payments.create).toHaveBeenCalledWith(
+            expect.objectContaining({
+            payment_method: 'PayPal',
+            })
+        );
         });
     });
 
