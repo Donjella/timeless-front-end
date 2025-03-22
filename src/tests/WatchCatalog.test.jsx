@@ -111,253 +111,139 @@ describe('WatchCatalog Component', () => {
     sessionStorage.clear();
   });
 
-  it('should render the watch catalog with watches', async () => {
+  const renderWithMaxPriceSlider = async () => {
     render(
       <BrowserRouter>
         <WatchCatalog />
       </BrowserRouter>
     );
 
-    // Wait for watches to load
     await waitFor(() => {
       expect(api.watches.getAll).toHaveBeenCalled();
     });
 
-    // Check if watches are displayed
+    // Set slider to max to make sure all watches show
+    const slider = screen.getByRole('slider');
+    fireEvent.change(slider, { target: { value: 150 } });
+  };
+
+  it('should render the watch catalog with watches', async () => {
+    await renderWithMaxPriceSlider();
+
     expect(screen.getByText(/Rolex Submariner/i)).toBeInTheDocument();
     expect(screen.getByText(/Omega Speedmaster/i)).toBeInTheDocument();
   });
 
   it('should not show admin buttons for regular users', async () => {
-    // Set up localStorage for regular user
     localStorage.setItem(
       'auth',
       JSON.stringify({
         token: 'mock-token',
-        user: {
-          _id: 'user1',
-          role: 'user',
-        },
+        user: { _id: 'user1', role: 'user' },
       })
     );
 
-    render(
-      <BrowserRouter>
-        <WatchCatalog />
-      </BrowserRouter>
-    );
-
-    // Wait for watches to load
-    await waitFor(() => {
-      expect(api.watches.getAll).toHaveBeenCalled();
-    });
-
-    // Add New Watch button should not be visible for regular users
+    await renderWithMaxPriceSlider();
     expect(screen.queryByText('Add New Watch')).not.toBeInTheDocument();
   });
 
   it('should show admin buttons for admin users', async () => {
-    // Set up localStorage for admin user
     localStorage.setItem(
       'auth',
       JSON.stringify({
         token: 'mock-token',
-        user: {
-          _id: 'user1',
-          role: 'admin',
-        },
+        user: { _id: 'user1', role: 'admin' },
       })
     );
 
-    render(
-      <BrowserRouter>
-        <WatchCatalog />
-      </BrowserRouter>
-    );
-
-    // Wait for watches to be displayed
-    await waitFor(() => {
-      expect(api.watches.getAll).toHaveBeenCalled();
-    });
-
-    // Add New Watch button should be visible
+    await renderWithMaxPriceSlider();
     expect(screen.getByText('Add New Watch')).toBeInTheDocument();
 
-    // Open watch details
     const viewDetailsButtons = screen.getAllByText('View Details');
     fireEvent.click(viewDetailsButtons[0]);
-
-    // Admin actions should be visible
     expect(screen.getByText('Edit')).toBeInTheDocument();
     expect(screen.getByText('Delete')).toBeInTheDocument();
   });
 
   it('should open watch details modal when view details is clicked', async () => {
-    render(
-      <BrowserRouter>
-        <WatchCatalog />
-      </BrowserRouter>
-    );
-
-    // Wait for watches to load
-    await waitFor(() => {
-      expect(api.watches.getAll).toHaveBeenCalled();
-    });
-
-    // Find and click View Details button
+    await renderWithMaxPriceSlider();
     const viewDetailsButtons = screen.getAllByText('View Details');
     fireEvent.click(viewDetailsButtons[0]);
 
-    // Check if modal was opened with the correct watch
     expect(screen.getByText(/Year:/i)).toBeInTheDocument();
     expect(screen.getByText(/Condition:/i)).toBeInTheDocument();
     expect(screen.getByText('Rent Now')).toBeInTheDocument();
   });
 
   it('should filter watches when a brand filter is applied', async () => {
-    render(
-      <BrowserRouter>
-        <WatchCatalog />
-      </BrowserRouter>
-    );
-
-    // Wait for watches to load
-    await waitFor(() => {
-      expect(api.watches.getAll).toHaveBeenCalled();
-    });
-
-    // Initially both watches should be visible
-    expect(screen.getByText(/Rolex Submariner/i)).toBeInTheDocument();
-    expect(screen.getByText(/Omega Speedmaster/i)).toBeInTheDocument();
-
-    // Click the Rolex brand checkbox
+    await renderWithMaxPriceSlider();
     const brandCheckbox = screen.getByLabelText('Rolex');
     fireEvent.click(brandCheckbox);
 
-    // After filtering, only Rolex watch should be visible
     expect(screen.getByText(/Rolex Submariner/i)).toBeInTheDocument();
     expect(screen.queryByText(/Omega Speedmaster/i)).not.toBeInTheDocument();
   });
 
   it('should navigate to checkout when rent now is clicked', async () => {
-    // Set up localStorage for logged in user
     localStorage.setItem(
       'auth',
       JSON.stringify({
         token: 'mock-token',
-        user: {
-          _id: 'user1',
-          role: 'user',
-        },
+        user: { _id: 'user1', role: 'user' },
       })
     );
 
-    render(
-      <BrowserRouter>
-        <WatchCatalog />
-      </BrowserRouter>
-    );
-
-    // Wait for watches to load
-    await waitFor(() => {
-      expect(api.watches.getAll).toHaveBeenCalled();
-    });
-
-    // Open watch details
+    await renderWithMaxPriceSlider();
     const viewDetailsButtons = screen.getAllByText('View Details');
     fireEvent.click(viewDetailsButtons[0]);
 
-    // Click Rent Now
     const rentButton = screen.getByText('Rent Now');
     fireEvent.click(rentButton);
 
-    // Check if navigation was triggered to checkout
     expect(mockNavigate).toHaveBeenCalledWith('/checkout');
-
-    // Check if sessionStorage was set with correct checkout item
     expect(sessionStorage.setItem).toHaveBeenCalled();
     const storedItems = JSON.parse(sessionStorage.setItem.mock.calls[0][1]);
     expect(storedItems[0].watchId).toBe('watch1');
   });
 
   it('should redirect to login when trying to rent while not logged in', async () => {
-    // Ensure no auth in localStorage
     localStorage.clear();
 
-    render(
-      <BrowserRouter>
-        <WatchCatalog />
-      </BrowserRouter>
-    );
-
-    // Wait for watches to load
-    await waitFor(() => {
-      expect(api.watches.getAll).toHaveBeenCalled();
-    });
-
-    // Open watch details
+    await renderWithMaxPriceSlider();
     const viewDetailsButtons = screen.getAllByText('View Details');
     fireEvent.click(viewDetailsButtons[0]);
 
-    // Click Rent Now
     const rentButton = screen.getByText('Rent Now');
     fireEvent.click(rentButton);
-
-    // Check if navigation was triggered to login with redirect
     expect(mockNavigate).toHaveBeenCalledWith('/login?redirect=/checkout');
   });
 
   it('should delete watch when admin clicks delete and confirms', async () => {
-    // Set up localStorage for admin user
     localStorage.setItem(
       'auth',
       JSON.stringify({
         token: 'mock-token',
-        user: {
-          _id: 'user1',
-          role: 'admin',
-        },
+        user: { _id: 'user1', role: 'admin' },
       })
     );
 
-    // Mock window.confirm to return true
     const confirmSpy = vi.spyOn(window, 'confirm');
     confirmSpy.mockImplementation(() => true);
 
-    // Mock successful delete
     api.watches.delete.mockResolvedValue({ success: true });
 
-    render(
-      <BrowserRouter>
-        <WatchCatalog />
-      </BrowserRouter>
-    );
-
-    // Wait for watches to load
-    await waitFor(() => {
-      expect(api.watches.getAll).toHaveBeenCalled();
-    });
-
-    // Open watch details
+    await renderWithMaxPriceSlider();
     const viewDetailsButtons = screen.getAllByText('View Details');
     fireEvent.click(viewDetailsButtons[0]);
 
-    // Click Delete button
     const deleteButton = screen.getByText('Delete');
     fireEvent.click(deleteButton);
 
-    // Confirm dialog should be shown
     expect(confirmSpy).toHaveBeenCalled();
-
-    // API delete should be called
     await waitFor(() => {
       expect(api.watches.delete).toHaveBeenCalledWith('watch1');
     });
-
-    // Modal should be closed
     expect(screen.queryByText('Delete')).not.toBeInTheDocument();
-
-    // Clean up
     confirmSpy.mockRestore();
   });
 });
