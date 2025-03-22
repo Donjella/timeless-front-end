@@ -19,7 +19,7 @@ const WatchCatalog = () => {
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [brandFilters, setBrandFilters] = useState({});
-  const [priceValue, setPriceValue] = useState(null);
+  const [priceValue, setPriceValue] = useState(0);
   const [maxPrice, setMaxPrice] = useState(150);
   const [conditionFilter, setConditionFilter] = useState('Any');
 
