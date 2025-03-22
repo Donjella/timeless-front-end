@@ -203,7 +203,6 @@ export const api = {
         body: JSON.stringify({ role }),
       }),
 
-    // ✅ Changed from PUT to PATCH to match backend
     updateProfile: (userData) =>
       fetchWrapper('/api/users/profile', {
         method: 'PATCH',
@@ -228,6 +227,13 @@ export const api = {
       fetchWrapper(`/api/users/email/${email}`, {
         method: 'GET',
         headers: createHeaders(),
+      }),
+
+    updateByEmail: (email, userData) =>
+      fetchWrapper(`/api/users/email/${encodeURIComponent(email)}`, {
+        method: 'PATCH',
+        headers: createHeaders(),
+        body: JSON.stringify(userData),
       }),
   },
 

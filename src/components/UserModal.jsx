@@ -4,7 +4,6 @@ import { X } from 'lucide-react';
 import { api } from '../utils/api';
 
 const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
-  // State for form fields
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -15,10 +14,8 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Reset form when modal opens/closes or user changes
   useEffect(() => {
     if (user) {
-      // Populate form with existing user data
       setFormData({
         first_name: user.first_name || '',
         last_name: user.last_name || '',
@@ -27,22 +24,18 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
         role: user.role || 'user',
       });
     } else {
-      // Reset form for new user
       setFormData({
         first_name: '',
         last_name: '',
         email: '',
         phone_number: '',
         role: 'user',
-        // Only include password for new users
         password: '',
       });
     }
-    // Clear any previous errors
     setError(null);
   }, [user, isOpen]);
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -51,17 +44,14 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
     }));
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation
     if (!formData.first_name || !formData.last_name || !formData.email) {
       setError('First name, last name, and email are required');
       return;
     }
 
-    // For new users, ensure password is provided
     if (!user && !formData.password) {
       setError('Password is required for new users');
       return;
@@ -71,47 +61,38 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
     setError(null);
 
     try {
-      // Create a copy of formData to avoid modifying the original
       const dataToSubmit = { ...formData };
-
-      // Don't send password for updates
       if (user) {
         delete dataToSubmit.password;
       }
 
       if (user) {
-        // 1. First, update the role if it changed (using the specific endpoint)
         if (formData.role !== user.role) {
           try {
             await api.users.updateRole(user._id, formData.role);
-            console.log('Role updated successfully');
           } catch (roleErr) {
             console.error('Error updating role:', roleErr);
           }
         }
 
-        // 2. Update user profile (use PATCH method to updateUserProfile)
-        try {
-          // Only send fields that can be updated in profile
-          const profileData = {
-            first_name: dataToSubmit.first_name,
-            last_name: dataToSubmit.last_name,
-            phone_number: dataToSubmit.phone_number,
-          };
+        const profileData = {
+          first_name: dataToSubmit.first_name,
+          last_name: dataToSubmit.last_name,
+          phone_number: dataToSubmit.phone_number,
+        };
 
+        if (api.auth.isAdmin()) {
+          await api.users.updateByEmail(user.email, {
+            ...profileData,
+            role: formData.role,
+          });
+        } else {
           await api.users.updateProfile(profileData);
-          console.log('Submitting profileData:', profileData);
-          console.log('Profile updated successfully');
-        } catch (profileErr) {
-          console.error('Error updating profile:', profileErr);
-          throw profileErr; // Rethrow to be caught by outer catch
         }
       } else {
-        // For new users, use registration endpoint with all fields
         await api.auth.register(dataToSubmit);
       }
 
-      // Construct updated user data for UI refresh
       const updatedUserData = user
         ? {
             ...user,
@@ -122,13 +103,11 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
           }
         : dataToSubmit;
 
-      // Call onSave callback to update UI
       onSave(updatedUserData, user ? 'edit' : 'add');
       onClose();
     } catch (err) {
       console.error('Form submission error:', err);
 
-      // Improve error handling
       let errorMessage = 'An error occurred while saving the user';
 
       if (err.message) {
@@ -147,7 +126,6 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
     }
   };
 
-  // If modal is not open, return null
   if (!isOpen) return null;
 
   return (
@@ -267,7 +245,6 @@ const UserModal = ({ isOpen, onClose, user = null, onSave }) => {
   );
 };
 
-// Add PropTypes validation
 UserModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
