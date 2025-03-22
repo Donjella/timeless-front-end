@@ -6,7 +6,7 @@ const API_BASE_URL = 'https://timeless-back-end.onrender.com';
 // Helper function to check if token is expired
 const isTokenExpired = (token) => {
   if (!token) return true;
-  
+
   try {
     // Token has format: header.payload.signature
     const base64Url = token.split('.')[1];
@@ -14,12 +14,12 @@ const isTokenExpired = (token) => {
     const jsonPayload = decodeURIComponent(
       atob(base64)
         .split('')
-        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     );
-    
+
     const { exp } = JSON.parse(jsonPayload);
-    
+
     // Check if expiration time is past current time
     return exp * 1000 < Date.now();
   } catch (e) {
@@ -32,14 +32,14 @@ const isTokenExpired = (token) => {
 const getToken = () => {
   const auth = JSON.parse(localStorage.getItem('auth') || '{}');
   const token = auth.token;
-  
+
   // If token is expired, clear it from storage
   if (token && isTokenExpired(token)) {
     console.warn('Token expired, clearing authentication');
     localStorage.removeItem('auth');
     return null;
   }
-  
+
   return token;
 };
 
@@ -193,6 +193,12 @@ export const api = {
     delete: (id) =>
       fetchWrapper(`/api/users/${id}`, {
         method: 'DELETE',
+        headers: createHeaders(),
+      }),
+
+    searchByEmail: (email) =>
+      fetchWrapper(`/api/users/email/${email}`, {
+        method: 'GET',
         headers: createHeaders(),
       }),
   },
@@ -418,5 +424,15 @@ export const api = {
 
       return 'An unexpected error occurred. Please try again.';
     },
+  },
+
+  // Addresses endpoints
+  addresses: {
+    updateUserAddress: (addressData) =>
+      fetchWrapper('/api/addresses/user', {
+        method: 'PATCH',
+        headers: createHeaders(),
+        body: JSON.stringify(addressData),
+      }),
   },
 };

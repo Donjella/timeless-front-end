@@ -464,8 +464,9 @@ const Checkout = () => {
               // Allow date editing for regular checkout
               <>
                 <div className="date-input-group">
-                  <label>Start Date:</label>
+                  <label htmlFor={`start-date-${index}`}>Start Date:</label>
                   <input
+                    id={`start-date-${index}`}
                     type="date"
                     value={rentalDate.startDate}
                     onChange={(e) =>
@@ -481,8 +482,9 @@ const Checkout = () => {
                 </div>
 
                 <div className="date-input-group">
-                  <label>End Date:</label>
+                  <label htmlFor={`end-date-${index}`}>End Date:</label>
                   <input
+                    id={`end-date-${index}`}
                     type="date"
                     value={rentalDate.endDate}
                     onChange={(e) =>
@@ -579,7 +581,7 @@ const Checkout = () => {
             <div className="success-actions">
               <button
                 className="btn-secondary"
-                onClick={() => navigate('/account/rentals')}
+                onClick={() => navigate('/account/profile')}
               >
                 View My Rentals
               </button>
@@ -634,28 +636,41 @@ const Checkout = () => {
               {authData.isAuthenticated && authData.user ? (
                 <div className="customer-info">
                   <div className="info-row">
-                    <span className="info-label">Name:</span>
-                    <span className="info-value">
+                    <span id="name-label" className="info-label">
+                      Name:
+                    </span>
+                    <span aria-labelledby="name-label" className="info-value">
                       {authData.user.first_name} {authData.user.last_name}
                     </span>
                   </div>
 
                   <div className="info-row">
-                    <span className="info-label">Email:</span>
-                    <span className="info-value">{authData.user.email}</span>
+                    <span id="email-label" className="info-label">
+                      Email:
+                    </span>
+                    <span aria-labelledby="email-label" className="info-value">
+                      {authData.user.email}
+                    </span>
                   </div>
 
                   <div className="info-row">
-                    <span className="info-label">Phone:</span>
-                    <span className="info-value">
+                    <span id="phone-label" className="info-label">
+                      Phone:
+                    </span>
+                    <span aria-labelledby="phone-label" className="info-value">
                       {authData.user.phone_number || 'Not provided'}
                     </span>
                   </div>
 
                   {authData.user.street_address && (
                     <div className="info-row">
-                      <span className="info-label">Address:</span>
-                      <span className="info-value">
+                      <span id="address-label" className="info-label">
+                        Address:
+                      </span>
+                      <span
+                        aria-labelledby="address-label"
+                        className="info-value"
+                      >
                         {authData.user.street_address}, {authData.user.suburb},{' '}
                         {authData.user.state} {authData.user.postcode}
                       </span>
@@ -799,6 +814,13 @@ const Checkout = () => {
               <div
                 className="order-summary-header"
                 onClick={() => setOrderSummaryExpanded(!orderSummaryExpanded)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    setOrderSummaryExpanded(!orderSummaryExpanded);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
               >
                 <div className="summary-title">
                   <ShoppingBag size={18} />

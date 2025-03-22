@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles/index.css';
 import App from './App.jsx';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from '/src/contexts/AuthProvider.jsx';
 
 console.log('Main.jsx is running');
 

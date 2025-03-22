@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  CreditCard,
-  AlertTriangle,
-  X,
-  Check,
-  Calendar,
-} from 'lucide-react';
+import { CreditCard, AlertTriangle, X, Check, Calendar } from 'lucide-react';
 import { api } from '../utils/api';
 import { getImagePlaceholder } from '../utils/imageUtils';
 import { useAuthData } from '../hooks/useAuthData';
@@ -198,7 +192,8 @@ const SimplifiedCheckout = () => {
       const paymentData = {
         rental_id: rental._id,
         amount: rental.total_rental_price,
-        payment_method: paymentMethod === 'credit_card' ? 'Credit Card' : 'PayPal',
+        payment_method:
+          paymentMethod === 'credit_card' ? 'Credit Card' : 'PayPal',
       };
 
       console.log('Submitting payment:', paymentData);
@@ -209,7 +204,9 @@ const SimplifiedCheckout = () => {
 
       // Set order details for success page
       setOrderDetails({
-        orderId: Date.now().toString(36) + Math.random().toString(36).substring(2, 5).toUpperCase(),
+        orderId:
+          Date.now().toString(36) +
+          Math.random().toString(36).substring(2, 5).toUpperCase(),
         rental: updatedRental,
         payment: payment,
         total: rental.total_rental_price,
@@ -218,7 +215,9 @@ const SimplifiedCheckout = () => {
       setOrderSuccess(true);
     } catch (err) {
       console.error('Error processing payment:', err);
-      setError('Failed to process your payment. Please try again or contact customer support.');
+      setError(
+        'Failed to process your payment. Please try again or contact customer support.'
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -346,7 +345,10 @@ const SimplifiedCheckout = () => {
           <div className="error-message">
             <AlertTriangle size={20} />
             <span>{error || 'Rental information not available'}</span>
-            <button onClick={() => navigate('/account/rentals')} className="btn-primary">
+            <button
+              onClick={() => navigate('/account/rentals')}
+              className="btn-primary"
+            >
               Back to My Rentals
             </button>
           </div>
@@ -382,7 +384,10 @@ const SimplifiedCheckout = () => {
                     src={rental.watch?.image_url || getImagePlaceholder()}
                     alt={rental.watch?.model || 'Watch'}
                     onError={(e) => {
-                      console.log("Image failed to load:", rental.watch?.image_url);
+                      console.log(
+                        'Image failed to load:',
+                        rental.watch?.image_url
+                      );
                       e.target.onerror = null;
                       e.target.src = getImagePlaceholder();
                     }}
@@ -406,7 +411,11 @@ const SimplifiedCheckout = () => {
                     </p>
                     <p>
                       <strong>Duration:</strong>{' '}
-                      {calculateRentalDays(rental.rental_start_date, rental.rental_end_date)} days
+                      {calculateRentalDays(
+                        rental.rental_start_date,
+                        rental.rental_end_date
+                      )}{' '}
+                      days
                     </p>
                   </div>
                 </div>

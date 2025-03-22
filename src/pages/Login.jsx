@@ -106,7 +106,7 @@ export function Login() {
           </div>
 
           <div className="register-link">
-            Don't have an account? <a href="/register">Register here</a>
+            Don&apos;t have an account? <a href="/register">Register here</a>
           </div>
         </form>
       </div>

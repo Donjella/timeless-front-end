@@ -63,7 +63,7 @@
   }
   
   input, select {
-    width: 100%;
+    width: auto;
     padding: 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -113,6 +113,7 @@
     width: 100%;
     max-width: 300px;
     transition: background-color 0.3s ease;
+    margin: 0 auto;
   }
   
   .register-btn:hover {

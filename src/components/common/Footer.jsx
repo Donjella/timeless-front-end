@@ -21,13 +21,13 @@ export function Footer() {
             <h3 className="footer-heading">Quick Links</h3>
             <ul className="footer-links">
               <li>
+                <Link to="/">Home Page</Link>
+              </li>
+              <li>
                 <Link to="/catalog">Our Collection</Link>
               </li>
               <li>
                 <Link to="/about">About Us</Link>
-              </li>
-              <li>
-                <Link to="/contact">Contact</Link>
               </li>
             </ul>
           </div>

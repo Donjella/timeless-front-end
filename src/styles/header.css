@@ -97,9 +97,9 @@
 }
 
 
-/* My Rentals Button */
-.rentals-btn {
-  background-color: #5d6d7e;
+/* Profile Button */
+.profile-btn {
+  background-color: #3d7e9a;
   color: white;
   padding: 0 16px;
   border-radius: 4px;
@@ -107,8 +107,8 @@
   gap: 6px;
 }
 
-.rentals-btn:hover {
-  background-color: #4a5b6d;
+.profile-btn:hover {
+  background-color: #2c6b87;
 }
 
 /* Cart Button */
@@ -311,7 +311,6 @@
     justify-content: flex-end;
   }
   
-  .admin-btn, .profile-btn {
   .admin-btn, .rentals-btn, .profile-btn {
     order: -1;
     margin-bottom: 5px;

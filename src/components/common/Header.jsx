@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthData } from '../../hooks/useAuthData';
-import { User, Watch } from 'lucide-react';
+import { User } from 'lucide-react';
 import '../../styles/header.css';
 
 export function Header() {
@@ -55,11 +55,11 @@ export function Header() {
                 </Link>
 =======
 
-                {/* My Rentals button for regular users */}
+                {/* User Profile button for regular users */}
                 {!isAdmin && (
-                  <Link to="/account/rentals" className="rentals-btn">
-                    <Watch size={18} />
-                    <span>My Rentals</span>
+                  <Link to="/account/profile" className="profile-btn">
+                    <User size={18} />
+                    <span>My Profile</span>
                   </Link>
                 )}
 
@@ -92,6 +92,7 @@ export function Header() {
                 About
               </Link>
             </li>
+<<<<<<< HEAD
             <li>
               <Link to="/contact" onClick={() => setMobileMenuOpen(false)}>
                 Contact
@@ -103,13 +104,19 @@ export function Header() {
                 <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
                   My Profile
 =======
+=======
+>>>>>>> dev
             {authData.isAuthenticated && !isAdmin && (
               <li>
                 <Link
-                  to="/account/rentals"
+                  to="/account/profile"
                   onClick={() => setMobileMenuOpen(false)}
                 >
+<<<<<<< HEAD
                   My Rentals
+>>>>>>> dev
+=======
+                  My Profile
 >>>>>>> dev
                 </Link>
               </li>
@@ -146,9 +153,6 @@ export function Header() {
             </li>
             <li>
               <Link to="/about">About</Link>
-            </li>
-            <li>
-              <Link to="/contact">Contact</Link>
             </li>
             {isAdmin && (
               <li>
