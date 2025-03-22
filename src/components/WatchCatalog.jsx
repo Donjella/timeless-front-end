@@ -227,8 +227,7 @@ const WatchCatalog = () => {
     const matchesBrand = !anyBrandSelected || brandFilters[watch.brand?._id];
 
     // Price range filter
-    const matchesPrice =
-      priceValue === 0 || watch.rental_day_price <= priceValue;
+    const matchesPrice = watch.rental_day_price <= priceValue;
 
     // Condition filter
     const matchesCondition =
