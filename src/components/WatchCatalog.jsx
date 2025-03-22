@@ -228,7 +228,7 @@ const WatchCatalog = () => {
 
     // Price range filter
     const matchesPrice =
-      priceValue === 0 || watch.rental_day_price >= priceValue;
+      priceValue === 0 || watch.rental_day_price <= priceValue;
 
     // Condition filter
     const matchesCondition =
@@ -381,8 +381,7 @@ const WatchCatalog = () => {
             />
             <div className="price-labels">
               <span>$0</span>
-              <span>${priceValue}</span>
-              <span>${maxPrice}</span>
+              <span>Max: ${priceValue}</span>
             </div>
           </div>
 

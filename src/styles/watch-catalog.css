@@ -190,6 +190,9 @@
 .price-slider {
   width: 100%;
   margin-bottom: 8px;
+  padding: 0 !important; 
+  border: none !important;
+  border-radius: 0;
 }
 
 .price-labels {
