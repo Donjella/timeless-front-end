@@ -29,7 +29,7 @@ function AppRoutes() {
   const isAdmin =
     authData.isAuthenticated && authData.user && authData.user.role === 'admin';
 
-  // Protected route component
+  // Protected route component for admin-only routes
   const AdminRoute = ({ children }) => {
     if (!authData.isAuthenticated) {
       return <Navigate to="/login" />;
@@ -46,7 +46,7 @@ function AppRoutes() {
     children: PropTypes.node.isRequired,
   };
 
-  // Regular user protected route
+  // Regular user protected route - requires authentication
   const ProtectedRoute = ({ children }) => {
     if (!authData.isAuthenticated) {
       return <Navigate to="/login" />;
@@ -59,6 +59,19 @@ function AppRoutes() {
     children: PropTypes.node.isRequired,
   };
 
+  // Public-only route - redirects to home if user is already logged in
+  const PublicOnlyRoute = ({ children }) => {
+    if (authData.isAuthenticated) {
+      return <Navigate to="/" />;
+    }
+
+    return children;
+  };
+
+  PublicOnlyRoute.propTypes = {
+    children: PropTypes.node.isRequired,
+  };
+
   return (
     <Router>
       <Routes>
@@ -67,8 +80,24 @@ function AppRoutes() {
           <Route index element={<HomePage />} />
           <Route path="catalog" element={<WatchCatalog />} />
           <Route path="about" element={<About />} />
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
+
+          {/* Auth routes - redirect to home if already logged in */}
+          <Route
+            path="login"
+            element={
+              <PublicOnlyRoute>
+                <Login />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="register"
+            element={
+              <PublicOnlyRoute>
+                <Register />
+              </PublicOnlyRoute>
+            }
+          />
 
           {/* User routes (protected) */}
           <Route
