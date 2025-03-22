@@ -333,6 +333,20 @@ tbody tr:hover {
   background-color: #fff1f0;
 }
 
+.add-brand-btn {
+  background-color: #4e7df7; /* vibrant blue */
+  color: white;
+  border: 1px solid #3a6ae0;
+  padding: 6px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.add-brand-btn:hover {
+  background-color: #3a6ae0;
+}
+
+
 /* Disabled buttons */
 .btn[disabled], .btn-icon[disabled] {
   opacity: 0.5;

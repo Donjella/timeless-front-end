@@ -63,13 +63,13 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
     }
   }, [isOpen, formData.brand_id]);
 
-  // Reset or populate form when watch or modal changes
   useEffect(() => {
+    if (!isOpen) return;
+  
+    // Handle Edit Mode: Only initialize once when modal opens
     if (watch) {
-      // Edit mode
       setFormData({
-        brand_id:
-          watch.brand && watch.brand._id ? watch.brand._id : watch.brand,
+        brand_id: watch.brand && watch.brand._id ? watch.brand._id : watch.brand,
         model: watch.model || '',
         year: watch.year || new Date().getFullYear(),
         rental_day_price: watch.rental_day_price || '',
@@ -77,27 +77,23 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
         quantity: watch.quantity || 5,
         image_url: watch.image_url || '',
       });
-
-      // Set image preview if there's an image URL
-      if (watch.image_url) {
-        setImagePreview(watch.image_url);
-      } else {
-        setImagePreview(null);
-      }
-    } else if (brands.length > 0) {
-      // Add mode - reset form
-      setFormData({
-        brand_id: brands[0]._id,
-        model: '',
-        year: new Date().getFullYear(),
-        rental_day_price: '',
-        condition: 'Good',
-        quantity: 5,
-        image_url: '',
-      });
-      setImagePreview(null);
+      setImagePreview(watch.image_url || null);
     }
-  }, [watch, isOpen, brands]);
+  
+    // Handle Add Mode: only update brand_id if it's not set
+    if (!watch && brands.length > 0) {
+      setFormData((prev) => {
+        if (!prev.brand_id) {
+          return {
+            ...prev,
+            brand_id: brands[0]._id,
+          };
+        }
+        return prev;
+      });
+    }
+  }, [isOpen]);
+  
 
   // Validate and check image URL
   const validateAndCheckImage = async (url) => {
@@ -323,7 +319,7 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
                 </select>
                 <button
                   type="button"
-                  className="btn btn-icon"
+                  className="btn btn-icon add-brand-btn"
                   onClick={toggleAddBrand}
                   title="Add new brand"
                 >
