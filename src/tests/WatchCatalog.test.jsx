@@ -284,5 +284,98 @@ const localStorageMock = (() => {
       // enter search term
       const searchInput = screen.getByPlaceholderText('Search watches...');
         fireEvent.change(searchInput, { target: { value: 'submariner' } });
-      });
+
+      // submariner should be visible, but not Speedmaster or Datejust
+      expect(screen.getByText('Rolex Submariner')).toBeInTheDocument();
+      expect(screen.queryByText('Omega Speedmaster')).not.toBeInTheDocument();
+      expect(screen.queryByText('Rolex Datejust')).not.toBeInTheDocument();
+      
+      // clear search term
+      fireEvent.change(searchInput, { target: { value: '' } });
+      
+      // all watches should be visible again
+      expect(screen.getByText('Rolex Submariner')).toBeInTheDocument();
+      expect(screen.getByText('Omega Speedmaster')).toBeInTheDocument();
+      expect(screen.getByText('Rolex Datejust')).toBeInTheDocument();
     });
+    it('should filter watches by price range', async () => {
+      render(
+        <BrowserRouter>
+          <WatchCatalog />
+        </BrowserRouter>
+      );
+      
+      // wait for watches to be displayed
+      await waitFor(() => {
+        expect(api.watches.getAll).toHaveBeenCalled();
+      });
+      
+      // set min price to 100
+      const priceSlider = screen.getByRole('slider');
+      fireEvent.change(priceSlider, { target: { value: '100' } });
+      
+      // only watches with price >= 100 should be visible
+      expect(screen.getByText('Rolex Submariner')).toBeInTheDocument(); // 100
+      expect(screen.queryByText('Omega Speedmaster')).not.toBeInTheDocument(); // 75
+      expect(screen.getByText('Rolex Datejust')).toBeInTheDocument(); // 150
+    });
+  
+    it('should filter watches by condition', async () => {
+      render(
+        <BrowserRouter>
+          <WatchCatalog />
+        </BrowserRouter>
+      );
+      
+      // wait for watches to be displayed
+      await waitFor(() => {
+        expect(api.watches.getAll).toHaveBeenCalled();
+      });
+      
+      // set condition filter to "New"
+      const conditionSelect = screen.getByRole('combobox');
+      fireEvent.change(conditionSelect, { target: { value: 'New' } });
+      
+      // only "New" watches should be visible
+      expect(screen.queryByText('Rolex Submariner')).not.toBeInTheDocument(); // Excellent
+      expect(screen.queryByText('Omega Speedmaster')).not.toBeInTheDocument(); // Good
+      expect(screen.getByText('Rolex Datejust')).toBeInTheDocument(); // New
+    });
+  
+    it('should clear all filters when clear button is clicked', async () => {
+      render(
+        <BrowserRouter>
+          <WatchCatalog />
+        </BrowserRouter>
+      );
+      
+      // wait for watches to be displayed
+      await waitFor(() => {
+        expect(api.watches.getAll).toHaveBeenCalled();
+      });
+      
+      // apply multiple filters
+      const searchInput = screen.getByPlaceholderText('Search watches...');
+      fireEvent.change(searchInput, { target: { value: 'rolex' } });
+      
+      const priceSlider = screen.getByRole('slider');
+      fireEvent.change(priceSlider, { target: { value: '100' } });
+      
+      // clear button should now be visible
+      const clearButton = screen.getByRole('button', { name: /clear all/i });
+      expect(clearButton).toBeInTheDocument();
+      
+      // click clear button
+      fireEvent.click(clearButton);
+      
+      // all filters should be reset and all watches visible again
+      expect(searchInput.value).toBe('');
+      expect(priceSlider.value).toBe('0');
+      
+      // all watches should be visible
+      expect(screen.getByText('Rolex Submariner')).toBeInTheDocument();
+      expect(screen.getByText('Omega Speedmaster')).toBeInTheDocument();
+      expect(screen.getByText('Rolex Datejust')).toBeInTheDocument();
+    });
+    
+  });
