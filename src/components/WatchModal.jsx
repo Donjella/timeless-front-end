@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { api } from '../utils/api';
 import { Upload, X } from 'lucide-react';
@@ -32,24 +32,22 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [imageError, setImageError] = useState(null);
 
+  // Ref to track if the form has been initialized
+  const hasInitialized = useRef(false);
+
   // Valid condition options from backend
   const validConditions = ['New', 'Excellent', 'Good', 'Fair', 'Poor'];
 
   // Fetch brands on component mount
   useEffect(() => {
+    // Only fetch brands when the modal is open
+    if (!isOpen) return;
+
     const fetchBrands = async () => {
       setLoading(true);
       try {
         const brandsData = await api.brands.getAll();
         setBrands(brandsData);
-
-        // If no brand is selected and brands exist, select the first one
-        if (!formData.brand_id && brandsData.length > 0) {
-          setFormData((prev) => ({
-            ...prev,
-            brand_id: brandsData[0]._id,
-          }));
-        }
       } catch (err) {
         setError('Failed to load brands. Please try again.');
         console.error(err);
@@ -58,18 +56,19 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
       }
     };
 
-    if (isOpen) {
-      fetchBrands();
-    }
-  }, [isOpen, formData.brand_id]);
+    fetchBrands();
+  }, [isOpen]);
 
+  // Handle form initialization - only runs once when modal opens
   useEffect(() => {
-    if (!isOpen) return;
-  
-    // Handle Edit Mode: Only initialize once when modal opens
+    // If modal is closed or we've already initialized, don't proceed
+    if (!isOpen || hasInitialized.current) return;
+
     if (watch) {
+      // Initialize with watch data in edit mode
       setFormData({
-        brand_id: watch.brand && watch.brand._id ? watch.brand._id : watch.brand,
+        brand_id:
+          watch.brand && watch.brand._id ? watch.brand._id : watch.brand,
         model: watch.model || '',
         year: watch.year || new Date().getFullYear(),
         rental_day_price: watch.rental_day_price || '',
@@ -78,10 +77,8 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
         image_url: watch.image_url || '',
       });
       setImagePreview(watch.image_url || null);
-    }
-  
-    // Handle Add Mode: only update brand_id if it's not set
-    if (!watch && brands.length > 0) {
+    } else if (brands.length > 0) {
+      // Initialize with default brand in add mode
       setFormData((prev) => {
         if (!prev.brand_id) {
           return {
@@ -92,8 +89,17 @@ const WatchModal = ({ isOpen, onClose, watch = null, onSave }) => {
         return prev;
       });
     }
+
+    // Mark as initialized
+    hasInitialized.current = true;
+  }, [isOpen, watch, brands]);
+
+  // Reset initialization flag when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      hasInitialized.current = false;
+    }
   }, [isOpen]);
-  
 
   // Validate and check image URL
   const validateAndCheckImage = async (url) => {
