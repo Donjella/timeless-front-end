@@ -643,116 +643,31 @@ const AdminDashboard = () => {
       )}
 
       {confirmDelete && (
-        <div
-          className="modal-overlay"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 9999,
-          }}
-        >
-          <div
-            className="modal-container confirmation-modal"
-            style={{
-              backgroundColor: '#fff',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-              width: '100%',
-              maxWidth: '400px',
-              overflow: 'hidden',
-              position: 'relative',
-            }}
-          >
-            <div
-              className="modal-header"
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '16px 20px',
-                borderBottom: '1px solid #eaeaea',
-              }}
-            >
-              <h2 style={{ margin: 0, fontSize: '20px', color: '#333' }}>
-                Confirm Delete
-              </h2>
-              <button
-                className="btn-close"
-                onClick={handleCancelDelete}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#666',
-                  padding: '4px',
-                }}
-              >
+        <div className="modal-overlay">
+          <div className="modal-container confirmation-modal">
+            <div className="modal-header">
+              <h2>Confirm Delete</h2>
+              <button className="btn-close" onClick={handleCancelDelete}>
                 <X size={18} />
               </button>
             </div>
-            <div
-              className="modal-content"
-              style={{
-                padding: '20px',
-              }}
-            >
-              <p style={{ marginTop: 0, fontSize: '16px', color: '#333' }}>
+            <div className="modal-content">
+              <p>
                 Are you sure you want to delete{' '}
                 {confirmDelete.name || confirmDelete.model}?
               </p>
-              <p
-                style={{ marginBottom: '8px', fontSize: '14px', color: '#666' }}
-              >
+              <p className="confirmation-warning">
                 This action cannot be undone.
               </p>
             </div>
-            <div
-              className="modal-footer"
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: '12px',
-                padding: '16px 20px',
-                borderTop: '1px solid #eaeaea',
-              }}
-            >
+            <div className="modal-footer">
               <button
                 className="btn btn-secondary"
                 onClick={handleCancelDelete}
-                style={{
-                  padding: '10px 16px',
-                  borderRadius: '4px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  backgroundColor: '#f5f5f5',
-                  color: '#333',
-                  border: 'none',
-                  transition: 'background-color 0.2s',
-                }}
               >
                 Cancel
               </button>
-              <button
-                className="btn btn-danger"
-                onClick={handleConfirmDelete}
-                style={{
-                  padding: '10px 16px',
-                  borderRadius: '4px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  backgroundColor: '#e53935',
-                  color: 'white',
-                  border: 'none',
-                  transition: 'background-color 0.2s',
-                }}
-              >
+              <button className="btn btn-danger" onClick={handleConfirmDelete}>
                 Delete
               </button>
             </div>

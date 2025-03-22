@@ -24,7 +24,7 @@
 
 .dashboard-content {
   display: flex;
-  gap: 24px;
+  gap: 18px;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -42,7 +42,10 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  justify-content: flex-start; /* Add this line */
+  width: fit-content; /* Add this line */
 }
+
 
 .sidebar-item {
   display: flex;
@@ -374,6 +377,10 @@ tbody tr:hover {
   color: #bfbfbf;
 }
 
+.ml-2 {
+  margin-left: 0.5rem; 
+}
+
 /* Filter Select */
 .filter-select {
   padding: 8px;
@@ -388,22 +395,242 @@ tbody tr:hover {
   font-size: 16px;
 }
 
-/* Confirmation Modal */
+/* Enhanced Modal Styles - Consolidated from all inline styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: 20px 0;
+}
+
+.modal-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
 .confirmation-modal {
   max-width: 400px;
 }
 
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eaeaea;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #333;
+  font-weight: 600;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .modal-content {
-  padding: 16px 24px;
+  padding: 20px;
   line-height: 1.5;
 }
 
+.modal-content p {
+  margin-top: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.modal-content p.note {
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
 .modal-footer {
-  padding: 16px 24px;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  border-top: 1px solid #eee;
+  padding: 16px 20px;
+  border-top: 1px solid #eaeaea;
+}
+
+/* Form related styles */
+.modal-form {
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-group {
+  margin-bottom: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #4e7df7;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(78, 125, 247, 0.2);
+}
+
+.form-group input.error,
+.form-group select.error {
+  border-color: #ff9999;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-column {
+  flex: 1;
+}
+
+.image-input-container {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.image-input-row {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.image-preview-container {
+  width: 100px;
+  height: 100px;
+  border: 1px dashed #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.image-preview {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 14px;
+}
+
+.error-text {
+  color: #f5222d;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.help-text {
+  color: #666;
+  font-size: 14px;
+  margin-top: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* Styles for brand adding in the watch modal */
+.select-with-button {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.select-with-button select {
+  flex: 1;
+}
+
+.new-brand-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.brand-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Modal Error */
+.modal-error {
+  background-color: #fff2f0;
+  border: 1px solid #ffccc7;
+  border-radius: 4px;
+  color: #f5222d;
+  padding: 12px;
+  margin: 16px 20px 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 /* Notice message for adding brand first */
@@ -421,102 +648,6 @@ tbody tr:hover {
 
 .notice-message .btn-sm {
   margin-left: 12px;
-}
-
-/* Styles for brand adding in the watch modal */
-.select-with-button {
-  display: flex;
-  gap: 8px;
-}
-
-.select-with-button select {
-  flex: 1;
-}
-
-.new-brand-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.brand-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.error-text {
-  color: #f5222d;
-  font-size: 0.8rem;
-  margin-top: 4px;
-}
-
-/* Modal overlay */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow-y: auto;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  z-index: 1000;
-  box-sizing: border-box;
-}
-
-/* Form elements */
-.modal-form {
-  padding: 16px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.form-group {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.form-group input,
-.form-group select {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.form-row {
-  display: flex;
-  gap: 16px;
-}
-
-.image-input-container {
-  display: flex;
-  gap: 12px;
-}
-
-.image-preview-container {
-  width: 100%;
-  height: 160px;
-}
-
-.form-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.modal-header {
-  padding: 12px 16px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.help-text {
-  width: 100%;
-  box-sizing: border-box;
 }
 
 /* Tablet Media Queries (769px - 1024px) */
@@ -638,6 +769,8 @@ tbody tr:hover {
     flex-wrap: nowrap;
     overflow-x: auto;
     border-radius: 6px;
+    justify-content: center;
+    margin: 0 auto;
   }
   
   .sidebar-item {
