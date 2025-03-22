@@ -377,5 +377,172 @@ const localStorageMock = (() => {
       expect(screen.getByText('Omega Speedmaster')).toBeInTheDocument();
       expect(screen.getByText('Rolex Datejust')).toBeInTheDocument();
     });
+    it('should show watch details when "View Details" is clicked', async () => {
+      render(
+        <BrowserRouter>
+          <WatchCatalog />
+        </BrowserRouter>
+      );
+      
+      // wait for watches to be displayed
+      await waitFor(() => {
+        expect(api.watches.getAll).toHaveBeenCalled();
+      });
+      
+      // click view details on Submariner
+      const viewDetailsButtons = screen.getAllByText('View Details');
+      fireEvent.click(viewDetailsButtons[0]); // Click first watch (Submariner)
+      
+      // details should be visible
+      expect(screen.getByText('Year:')).toBeInTheDocument();
+      expect(screen.getByText('Condition:')).toBeInTheDocument();
+      expect(screen.getByText('Price:')).toBeInTheDocument();
+      expect(screen.getByText('Available:')).toBeInTheDocument();
+      
+      // show specific watch details - year, price etc
+      expect(screen.getByText('2022')).toBeInTheDocument(); 
+      expect(screen.getByText('Excellent')).toBeInTheDocument(); 
+      expect(screen.getByText('$100/day')).toBeInTheDocument(); 
+      expect(screen.getByText('3 units')).toBeInTheDocument(); 
+      
+      // rent button should be enabled for in stock watch
+      const rentButton = screen.getByRole('button', { name: /rent now/i });
+      expect(rentButton).toBeInTheDocument();
+      expect(rentButton).not.toBeDisabled();
+      
+      // close
+      const closeButton = screen.getByRole('button', { name: '×' });
+      fireEvent.click(closeButton);
+      
+      // should be closed
+      expect(screen.queryByText('Year:')).not.toBeInTheDocument();
+    });
+  
+    it('should show out of stock message for watches with no quantity', async () => {
+      render(
+        <BrowserRouter>
+          <WatchCatalog />
+        </BrowserRouter>
+      );
+      
+      // wait for watches to be displayed
+      await waitFor(() => {
+        expect(api.watches.getAll).toHaveBeenCalled();
+      });
+      
+      // find out of stock watch 
+      const viewDetailsButtons = screen.getAllByText('View Details');
+      // click view details on Datejust
+      fireEvent.click(viewDetailsButtons[2]);
+      
+      // details should be visible
+      expect(screen.getByText('Rolex Datejust')).toBeInTheDocument();
+      
+      // rent button should be disabled and show out of stock
+      const rentButton = screen.getByRole('button', { name: /out of stock/i });
+      expect(rentButton).toBeInTheDocument();
+      expect(rentButton).toBeDisabled();
+    });
+  
+    it('should navigate to checkout when "Rent Now" is clicked', async () => {
+      
+      const navigateMock = vi.fn();
+      vi.mocked(require('react-router-dom').useNavigate).mockReturnValue(navigateMock);
+      
+      render(
+        <BrowserRouter>
+          <WatchCatalog />
+        </BrowserRouter>
+      );
+      
+      // wait for watches to be displayed
+      await waitFor(() => {
+        expect(api.watches.getAll).toHaveBeenCalled();
+      });
+      
+      // view details on Submariner click
+      const viewDetailsButtons = screen.getAllByText('View Details');
+      fireEvent.click(viewDetailsButtons[0]); 
+      
+      // click rent now button
+      const rentButton = screen.getByRole('button', { name: /rent now/i });
+      fireEvent.click(rentButton);
+      
+      // check checkout item saved to sessionStorage
+      expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
+        'checkoutItems',
+        expect.stringContaining('Submariner')
+      );
+      
+      // check navigation triggered
+      expect(navigateMock).toHaveBeenCalledWith('/checkout');
+    });
+  
+    it('should redirect unauthenticated users to login when trying to rent', async () => {
+      // localStorage no auth
+      window.localStorage.clear();
+      
+      // navigate function
+      const navigateMock = vi.fn();
+      vi.mocked(require('react-router-dom').useNavigate).mockReturnValue(navigateMock);
+      
+      render(
+        <BrowserRouter>
+          <WatchCatalog />
+        </BrowserRouter>
+      );
+      
+      // wait for watches displayed
+      await waitFor(() => {
+        expect(api.watches.getAll).toHaveBeenCalled();
+      });
+      
+      // click view details submariner 
+      const viewDetailsButtons = screen.getAllByText('View Details');
+      fireEvent.click(viewDetailsButtons[0]); 
+      
+      // click rent now button
+      const rentButton = screen.getByRole('button', { name: /rent now/i });
+      fireEvent.click(rentButton);
+      
+      // check navigation triggered to login with redirect 
+      expect(navigateMock).toHaveBeenCalledWith('/login?redirect=/checkout');
+    });
+  
+    it('should show admin buttons for admin users', async () => {
+      //  localStorage simulate admin
+      window.localStorage.setItem(
+        'auth',
+        JSON.stringify({
+          token: 'mock-token',
+          user: {
+            _id: 'user1',
+            role: 'admin',
+          },
+        })
+      );
+      
+      render(
+        <BrowserRouter>
+          <WatchCatalog />
+        </BrowserRouter>
+      );
+      
+      // wait for watches to be displayed
+      await waitFor(() => {
+        expect(api.watches.getAll).toHaveBeenCalled();
+      });
+      
+      // add New Watch button should be visible
+      expect(screen.getByText('Add New Watch')).toBeInTheDocument();
+      
+      // open watch details
+      const viewDetailsButtons = screen.getAllByText('View Details');
+      fireEvent.click(viewDetailsButtons[0]);
+      
+      // admin actions should be visible
+      expect(screen.getByText('Edit')).toBeInTheDocument();
+      expect(screen.getByText('Delete')).toBeInTheDocument();
+    });
     
   });
