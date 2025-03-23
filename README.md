@@ -148,17 +148,21 @@ The frontend relies on modern industry-standard tools for component-based UI dev
 - `@testing-library/react`, `jest-dom`, and `user-event` simulate realistic user interaction.
 - **Purpose**: Promote tests that reflect how users interact with the app.
 - **Alternatives**:
-  - **Enzyme**: More shallow rendering control but outdated.
+  - **Enzyme**: Provides more control over shallow rendering and component internals but is considered outdated and no longer actively maintained for newer versions of React.
   - **Playwright**: End-to-end testing with real browser but more setup.
 - **Industry Relevance**: Encouraged by React core team.
 - **License**: MIT.
 
 **jsdom** simulates a DOM in Node.js for running tests.
 
-- **Purpose**: Enables DOM testing without a browser.
-- **Alternatives**: `happy-dom` (faster but less mature).
-- **Industry Relevance**: Standard for React test environments.
-- **License**: MIT.
+- **Purpose**: Enables DOM testing without a browser, making it suitable for headless environments and CI pipelines.
+- **Alternatives**: 
+  - **happy-dom**: Lightweight and faster than jsdom, but less mature and lacks full API support.
+  - **Puppeteer**: Uses a real browser (Chrome/Chromium) for more accurate rendering; better for E2E tests.
+  - **Linkedom**: Fast and resource-efficient, but limited in complex DOM API support.
+- **Industry Relevance**: jsdom remains the standard for React test environments in Node.js.
+- **License**: MIT
+
 
 ### Dependency Management
 
@@ -217,10 +221,9 @@ To support local development with modern tooling like React and Vite, the follow
     * **NVMe SSD**: Faster but marginal real-world benefit for frontend projects
   * **License**: Hardware components with manufacturer warranties
 
-* **Browser**: 
-  * **Chosen Technology**: Latest Chrome, Firefox, or Edge
-  * **Purpose**: Testing and debugging application with modern web standards support
-  * **Industry Relevance**: Chrome DevTools are industry standard for React development
+* **Browser**:  
+  * **Chosen Technology**: Latest versions of Chrome, Firefox, or Edge  
+  * **Purpose & Relevance**: These browsers are essential for testing and debugging modern web applications, with Chrome being the industry standard due to its robust DevTools. The [React Developer Tools](https://reactjs.org/blog/2019/08/15/new-react-devtools.html) Chrome extension enhances this by allowing inspection of the React component tree, real-time props/state monitoring, and performance profiling. Firefox and Edge also support React DevTools, offering comparable functionality for cross-browser testing.
   * **Alternatives Comparison**:
     * **Firefox**: Strong privacy features and excellent CSS tools
     * **Safari**: Essential for testing on WebKit but limited developer tools
