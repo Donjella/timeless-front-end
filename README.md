@@ -221,13 +221,16 @@ To support local development with modern tooling like React and Vite, the follow
     * **NVMe SSD**: Faster but marginal real-world benefit for frontend projects
   * **License**: Hardware components with manufacturer warranties
 
-* **Browser**:  
-  * **Chosen Technology**: Latest versions of Chrome, Firefox, or Edge  
-  * **Purpose & Relevance**: These browsers are essential for testing and debugging modern web applications, with Chrome being the industry standard due to its robust DevTools. The [React Developer Tools](https://reactjs.org/blog/2019/08/15/new-react-devtools.html) Chrome extension enhances this by allowing inspection of the React component tree, real-time props/state monitoring, and performance profiling. Firefox and Edge also support React DevTools, offering comparable functionality for cross-browser testing.
-  * **Alternatives Comparison**:
-    * **Firefox**: Strong privacy features and excellent CSS tools
-    * **Safari**: Essential for testing on WebKit but limited developer tools
-  * **License**: Free to use (Chrome and Edge are proprietary, Firefox is open-source under MPL)
+* **Browser**:
+
+- **Chosen Technology**: Latest versions of Chrome, Firefox, or Edge
+- **Purpose & Relevance**: These browsers are essential for testing and debugging modern web applications, with Chrome being the industry standard due to its robust DevTools. The React Developer Tools Chrome extension enhances this by allowing inspection of the React component tree, real-time props/state monitoring, and performance profiling.
+- **Alternatives Comparison**:
+  - **Firefox**: Strong privacy features and excellent CSS tools; also supports React Developer Tools.
+  - **Safari**: Essential for testing on WebKit but has limited developer tooling and lacks support for some React extensions.
+  - **Edge**: Chromium-based and fully supports Chrome extensions, including React Developer Tools.
+- **License**: Free to use (Chrome and Edge are proprietary, Firefox is open-source under MPL)
+
 
 ### 2. Production Environment
 
