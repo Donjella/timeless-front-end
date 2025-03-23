@@ -1,6 +1,6 @@
 ## Table of Contents
 
-- [Important Links](#important-links)
+- [Important Links and Information](#important-links-and-information)
 - [Test Accounts](#test-accounts)
 - [Overview](#overview)
 - [Technologies Used (Frontend)](#technologies-used-frontend)
@@ -19,13 +19,22 @@
 
 ---
 
-## Important Links
+## Important Links and Information
+
+### macOS Users
+
+If you see a warning like `"rollup.darwin-x64.node” cannot be opened because the developer cannot be verified`, it's a macOS security feature.
+
+To fix it, run:
+
+```bash
+sudo xattr -r -d com.apple.quarantine .
+```
+### Important Links
 
 - 🔗 **Live Deployment**: [https://timeless-front-end.netlify.app/](https://timeless-front-end.netlify.app/)
 - 🖥️ **Local Development**: http://localhost:5173 (or another available port such as 5174, depending on your local setup)
 - 🌐 **Backend API**: [https://timeless-back-end.onrender.com/](https://timeless-back-end.onrender.com/) _(If the app fails to load, it may be due to cold start delays on Render)_
-
----
 
 ## Test Accounts
 
